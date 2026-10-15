@@ -1,0 +1,97 @@
+/* =========================================================
+   АДМИН-UI. ЭКРАН АВТОРИЗАЦИИ /admin И ВЕРХНЯЯ ПАНЕЛЬ CMS.
+   Использует токены темы из 00-tokens.css.
+   ========================================================= */
+/* Глобальный сброс: атрибут hidden обязан скрывать элемент, даже если
+   у класса задан собственный display (grid/flex). Без этого правила
+   экран входа (.auth-wrap{display:grid}) и поля (.adm-field{display:flex})
+   оставались видимыми после переключения hidden из JS — панель CMS
+   «не открывалась» после авторизации. */
+[hidden]{display:none!important}
+.auth-wrap{min-height:100vh;display:grid;place-items:center;padding:28px 16px;background:var(--bg);transition:background-color .45s ease}
+.auth-card{width:min(430px,100%);background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:36px 30px 28px;box-shadow:0 34px 80px -24px var(--shadow-deep),0 12px 30px -12px var(--shadow);text-align:center;transition:background-color .45s,border-color .45s}
+.auth-logo{width:58px;height:58px;margin:0 auto 16px;border-radius:17px;transition:transform .5s var(--ease)}
+.auth-card:hover .auth-logo{transform:rotate(-6deg) scale(1.05)}
+.auth-title{font-family:'Unbounded',sans-serif;font-weight:800;font-size:16px;letter-spacing:.01em;margin-bottom:6px;color:var(--ink)}
+.auth-title b{color:var(--green)}
+.auth-sub{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:24px}
+.auth-form{text-align:left}
+.auth-form[hidden]{display:none}
+.auth-input{padding:13px 15px;font-size:15px;border-radius:14px}
+.auth-btn{width:100%;margin-top:8px;padding:15px 22px}
+.auth-btn:disabled{opacity:.55;pointer-events:none}
+.auth-err{background:rgba(217,123,147,.12);border:1px solid rgba(217,123,147,.45);color:var(--pink-2);border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:700;margin:10px 0 2px;line-height:1.45}
+.auth-err[hidden]{display:none}
+.auth-note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:16px}
+.auth-hint{font-size:12.5px;color:var(--pink-2);font-weight:700;margin-top:14px}
+.auth-hint[hidden]{display:none}
+.auth-back{display:inline-flex;align-items:center;gap:6px;margin-top:20px;font-size:12.5px;color:var(--muted);font-weight:700;border-bottom:1px solid transparent;transition:color .3s,border-color .3s}
+.auth-back:hover{color:var(--green);border-color:currentColor}
+.auth-lock{display:flex;width:46px;height:46px;border-radius:50%;background:var(--surface-2);color:var(--green);align-items:center;justify-content:center;margin:0 auto 14px;transition:background-color .45s,color .45s}
+.auth-lock svg{width:22px;height:22px}
+
+/* ---------- верхняя панель CMS ---------- */
+.adm-bar{position:sticky;top:0;z-index:100;height:var(--header-h);display:flex;align-items:center;background:var(--header-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);transition:background-color .45s,border-color .45s}
+.adm-bar-in{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.adm-logo{display:flex;align-items:center;gap:10px;font-family:'Unbounded',sans-serif;font-weight:800;font-size:13px;color:var(--ink);min-width:0;transition:color .3s}
+.adm-logo b{color:var(--green)}
+.adm-logo .logo-mark{width:32px;height:32px;border-radius:10px;flex:none}
+.adm-logo .adm-tag{font-family:'Manrope',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--panel-fg);background:var(--green);border-radius:999px;padding:4px 9px;flex:none}
+[data-theme="dark"] .adm-logo .adm-tag{color:#0C2418}
+.adm-bar-act{display:flex;align-items:center;gap:8px;flex:none}
+.adm-theme{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line-2);display:grid;place-items:center;position:relative;overflow:hidden;background:transparent;flex:none;transition:border-color .3s,opacity .3s}
+.adm-theme:hover{border-color:var(--green)}
+.adm-theme svg{width:17px;height:17px;position:absolute;transition:transform .5s var(--ease),opacity .4s}
+.adm-theme .ic-sun{color:#E8A33D}
+.adm-theme .ic-moon{color:var(--leaf)}
+[data-theme="light"] .adm-theme .ic-moon{transform:translateY(130%) rotate(60deg);opacity:0}
+[data-theme="dark"] .adm-theme .ic-sun{transform:translateY(-130%) rotate(-60deg);opacity:0}
+#appScreen[hidden]{display:none}
+@media(max-width:575.98px){
+  .auth-card{padding:28px 20px 22px;border-radius:20px}
+  .auth-title{font-size:14.5px}
+  .adm-logo{font-size:10.5px;gap:8px}
+  .adm-logo .logo-mark{width:28px;height:28px;border-radius:9px}
+  .adm-bar-act .btn-mini{padding:9px 12px;font-size:11px}
+}
+@media(max-width:359.98px){
+  .adm-logo .adm-tag{display:none}
+}
+
+/* ---------- нижняя подпись панели ---------- */
+.adm-foot-note{margin-top:40px;padding:26px 0 34px;border-top:1px solid var(--line);transition:border-color .45s}
+.adm-foot-note p{font-size:12px;color:var(--muted);max-width:820px;line-height:1.65}
+
+/* =========================================================
+   КУРСОР В ПАНЕЛИ
+   Витрина скрывает системный курсор (00-tokens.css:
+   @media (pointer:fine){*{cursor:none!important}}) и рисует свой
+   кастомный (#cur/#curRing из site-ui.js). В панели кастомного
+   курсора нет, поэтому системный нужно вернуть явно — иначе
+   указатель пропадает. Правило ниже стоит позже и в более позднем
+   файле, чем токены, поэтому переопределяет cursor:none.
+   ========================================================= */
+@media (pointer:fine){
+  /* Нейтрализуем cursor:none из токенов: !important в авторском правиле
+     нельзя перекрыть обычным inline-значением, поэтому здесь тоже !important. */
+  *,*::before,*::after{cursor:auto!important}
+
+  a,button,label.btn,label.btn-mini,.adm-tabs button,.adm-list-row button,
+  .adm-imgs .im button,.adm-comp-row button,.adm-btns button,.adm-btns label,
+  .adm-check,.auth-btn,#logoutBtn,#admTheme,#dbExport,#dbReset,#secChange,
+  #prodAdd,#newColAdd,#admImgsBtn,#admCompAdd,#heroSave,#admSave,#admCancel,
+  input[type="file"],input[type="checkbox"],input[type="radio"],select,
+  [data-act="pedit"],[data-act="pdel"],[data-act="cdel"],[data-act="cmain"],[data-delimg],[data-delpend],[data-delcomp]
+  {cursor:pointer!important}
+
+  .adm-check input[type="checkbox"]{cursor:pointer!important}
+
+  .adm-input,.adm-textarea,.auth-input,#pwInput,#secOld,#secNew,
+  #secNew2,#heroPath,#newColName,
+  input[type="text"],input[type="number"],input[type="password"],
+  input[type="search"],textarea{cursor:text!important}
+}
+
+/* Кастомный курсор витрины в панели не используется — страховка
+   от «двойного» указателя, если узлы #cur/#curRing окажутся в DOM. */
+#cur,#curRing{display:none!important}

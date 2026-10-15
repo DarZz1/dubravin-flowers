@@ -1,0 +1,48 @@
+/* =========================================================
+   МОДУЛЬ 0. ТОКЕНЫ, ТЕМЫ, БАЗА
+   ========================================================= */
+:root{
+  --green:#1E5B41; --leaf:#3E8E63; --pink:#E7A6B4; --pink-2:#D97B93;
+  --olive:#6E6D55;
+  --r:26px; --header-h:74px;
+  --ig:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --eo:cubic-bezier(.25,.46,.45,.94);
+  --bounce:cubic-bezier(.34,1.56,.64,1);
+  color-scheme:light;
+  --bg:#F6F1E8; --surface:#FFFFFF; --surface-2:#EDE5D6;
+  --ink:#0C2418; --muted:#5C6F63;
+  --line:rgba(12,36,24,.12); --line-2:rgba(12,36,24,.24);
+  --panel:#0C2418; --panel-fg:#F6F1E8; --panel-muted:rgba(246,241,232,.72);
+  --btn-bg:#0C2418; --btn-fg:#F6F1E8;
+  --header-bg:rgba(246,241,232,.86); --chip-bg:rgba(246,241,232,.92);
+  --chip-hover:rgba(12,36,24,.07);
+  --shadow:rgba(12,36,24,.16); --shadow-soft:rgba(12,36,24,.08); --shadow-deep:rgba(12,36,24,.35);
+}
+[data-theme="dark"]{
+  color-scheme:dark;
+  --green:#6FBF8F; --leaf:#8FD6AC; --pink:#D98BA0; --pink-2:#E7A6B4;
+  --bg:#0A1710; --surface:#12241B; --surface-2:#0E1D15;
+  --ink:#F2EDE2; --muted:#9DB2A4;
+  --line:rgba(242,237,226,.13); --line-2:rgba(242,237,226,.26);
+  --panel:#061009; --panel-fg:#F2EDE2; --panel-muted:rgba(242,237,226,.68);
+  --btn-bg:#E7A6B4; --btn-fg:#0C2418;
+  --header-bg:rgba(10,23,16,.84); --chip-bg:rgba(18,36,27,.92);
+  --chip-hover:rgba(242,237,226,.09);
+  --shadow:rgba(0,0,0,.5); --shadow-soft:rgba(0,0,0,.3); --shadow-deep:rgba(0,0,0,.65);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{overflow-x:hidden}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;transition:background-color .45s ease,color .45s ease}
+body.locked{overflow:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit}
+::selection{background:var(--pink);color:#0C2418}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--surface-2)}
+::-webkit-scrollbar-thumb{background:var(--green);border-radius:8px}
+h1,h2,h3{font-family:'Unbounded',sans-serif;font-weight:600;line-height:1.14;letter-spacing:-.01em}
+.wrap{width:min(1240px,92vw);margin:0 auto}
+@media (pointer:fine){ *{cursor:none!important} }

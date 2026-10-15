@@ -1,0 +1,41 @@
+/* =========================================================
+   МОДУЛЬ 4. КНОПКИ
+   ========================================================= */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:16px 28px;border-radius:999px;font-weight:700;font-size:15px;background:var(--btn-bg);color:var(--btn-fg);position:relative;transition:transform .3s ease-out,box-shadow .3s ease-out,background-color .45s,color .45s,border-color .45s;text-align:center}
+.btn svg{width:18px;height:18px;flex:none}
+.btn:hover{transform:translateY(-3px);box-shadow:0 16px 34px var(--shadow)}
+.btn.pink{background:var(--pink);color:#0C2418;overflow:hidden}
+.btn.pink:hover{background:var(--pink-2);color:#fff;transform:translateY(-3px) scale(1.03)}
+.btn.pink::after{content:"";position:absolute;top:0;bottom:0;left:0;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);transform:translateX(-160%);transition:transform .8s ease-out;pointer-events:none}
+.btn.pink:hover::after{transform:translateX(340%)}
+.vk-ic{display:inline-flex;flex:none}
+.vk-ic svg{width:18px;height:18px}
+.btn.pink:hover .vk-ic{animation:vkBounce .5s var(--bounce)}
+@keyframes vkBounce{0%{transform:scale(1)}40%{transform:scale(1.25)}70%{transform:scale(.94)}100%{transform:scale(1)}}
+.btn-arrow{position:relative;width:18px;height:18px;overflow:hidden;flex:none;display:inline-block}
+.btn-arrow svg{position:absolute;inset:0;width:18px;height:18px;transition:transform .45s var(--eo)}
+.btn-arrow svg:nth-child(2){transform:translateX(-170%)}
+.btn:hover .btn-arrow svg:nth-child(1){transform:translateX(170%)}
+.btn:hover .btn-arrow svg:nth-child(2){transform:translateX(0)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line-2)}
+.btn.ghost:hover{background:var(--ink);color:var(--bg);box-shadow:none}
+.btn-mini{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--btn-bg);color:var(--btn-fg);border-radius:999px;padding:10px 14px;font-size:12px;font-weight:700;transition:background .3s ease-out,color .3s ease-out,transform .3s ease-out,box-shadow .3s ease-out;white-space:nowrap;max-width:100%;width:100%}
+.btn-mini svg{width:13px;height:13px;flex:none;transition:transform .3s ease-out}
+.btn-mini span{transition:transform .3s ease-out}
+.btn-mini:hover{background:var(--pink);color:#0C2418;box-shadow:0 10px 24px -8px var(--shadow)}
+.pcard:hover .btn-mini,.btn-mini:hover{transform:scale(1.04)}
+@keyframes iconPull{0%{transform:translate(0,0)}35%{transform:translate(3px,-2px) rotate(-10deg)}70%{transform:translate(-1px,1px)}100%{transform:translate(0,0)}}
+.pcard:hover .btn-mini svg,.btn-mini:hover svg{animation:iconPull .45s ease-out}
+.more-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:36px}
+.more-wrap[hidden]{display:none}
+.more-info{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.06em}
+.more-info span{display:inline-block;font-weight:800;color:var(--green)}
+.more-btn{position:relative;overflow:hidden}
+.more-btn .mb-text{transition:opacity .2s ease-out,transform .3s var(--bounce)}
+.more-btn:hover .mb-text{transform:translateX(3px)}
+.more-btn .loader{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity .2s ease-out;pointer-events:none}
+.more-btn .loader i{width:18px;height:18px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.more-btn.loading .mb-text{opacity:0}
+.more-btn.loading .loader{opacity:1}
+.more-btn.loading{pointer-events:none}

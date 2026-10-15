@@ -1,0 +1,23 @@
+# DUBRAVIN&FLOWERS — заголовки безопасности для Netlify и Cloudflare Pages.
+# Формат: путь, затем отступом пары «Ключ: Значение».
+# Значения CSP совпадают с meta-тегами страниц и с vercel.json.
+# Единственный файл заголовков в проекте — в netlify.toml дублей нет.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+
+# Панель управления: запрет индексации и более строгая CSP (без сторонних скриптов)
+/admin
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+
+/admin/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+# Служебные каталоги и конфиги не публикуются: заголовки им не нужны,
+# доступ закрывают правила в _redirects (404) и состав выгрузки на хостинг.

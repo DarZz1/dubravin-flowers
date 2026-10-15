@@ -1,0 +1,35 @@
+# DUBRAVIN&FLOWERS — редиректы для Netlify и Cloudflare Pages.
+# Формат: <откуда> <куда> [<код>] [!]. Правила применяются сверху вниз,
+# первое совпадение выигрывает.
+
+# Панель управления — по адресу /admin (физически admin/index.html)
+/admin    /admin/    301
+
+# ВАЖНО: эти правила ДО «/*» — файл _redirects обрабатывается Netlify РАНЬШЕ
+# netlify.toml, и без них catch-all «/* → /:splat.html» перехватил бы запросы
+# к API и фото, оставив CMS в локальном режиме (правки не попадали бы на сервер).
+# Серверная CMS (Netlify Functions): API и раздачу загруженных фото.
+/api/*    /.netlify/functions/api/:splat    200!
+/img/*    /.netlify/functions/img/:splat    200!
+
+# Служебные каталоги и конфиги не отдаются посетителям.
+# На хостинг их лучше вовсе не загружать; это второй рубеж.
+/tests/*          /404.html    404!
+/deploy/*         /404.html    404!
+/build_tools/*    /404.html    404!
+/node_modules/*   /404.html    404!
+/package.json     /404.html    404!
+/package-lock.json  /404.html  404!
+/netlify.toml     /404.html    404!
+/vercel.json      /404.html    404!
+/_headers         /404.html    404!
+/_redirects       /404.html    404!
+/.htaccess        /404.html    404!
+/.git/*           /404.html    404!
+/.env             /404.html    404!
+
+# ЧПУ без .html (cleanUrls, как в vercel.json)
+/*    /:splat.html    200
+
+# Фолбэк: любой неизвестный адрес отдаёт витрину — hash-роутер сам покажет 404
+/*    /index.html    200

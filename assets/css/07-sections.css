@@ -1,0 +1,40 @@
+/* =========================================================
+   МОДУЛЬ 7. СЕКЦИИ / КАТЕГОРИИ / КАРТОЧКИ
+   ========================================================= */
+section{padding:84px 0}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:38px;flex-wrap:wrap}
+.sec-title{font-size:clamp(22px,3.2vw,42px);font-weight:800}
+.sec-link{font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px;color:var(--green);border-bottom:1.5px solid transparent;transition:border-color .3s}
+.sec-link:hover{border-color:var(--green)}
+.sec-link svg{width:16px;height:16px;transition:transform .3s var(--ease);flex:none}
+.sec-link:hover svg{transform:translate(3px,-3px)}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.cat-tile{position:relative;border-radius:var(--r);overflow:hidden;aspect-ratio:3/4;display:block;background:var(--surface-2);transition:transform .3s ease-out,box-shadow .3s ease-out;will-change:transform}
+.cat-tile:hover{transform:translateY(-8px);box-shadow:0 34px 70px -18px var(--shadow-deep),0 18px 40px -12px var(--shadow)}
+.cat-tile img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease-out;will-change:transform}
+.cat-tile:hover img{transform:scale(1.05)}
+.cat-tile::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(12,36,24,.82),transparent 55%);transition:opacity .3s ease-out}
+.cat-label{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;color:#F6F1E8;display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:calc(100% - 24px)}
+.cat-label b{font-family:'Unbounded';font-weight:600;font-size:clamp(11px,1.1vw,16px);line-height:1.2;min-width:0;overflow-wrap:break-word}
+.cat-label i{font-style:normal;width:34px;height:34px;border-radius:50%;background:var(--pink);color:#0C2418;display:grid;place-items:center;flex:none;transition:transform .3s ease-out,background-color .3s ease-out}
+.cat-label i svg{width:15px;height:15px;transition:transform .3s ease-out}
+.cat-tile:hover .cat-label i{transform:scale(1.15);background:var(--pink-2)}
+.cat-tile:hover .cat-label i svg{transform:rotate(-45deg)}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:stretch}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;position:relative;display:flex;flex-direction:column;height:100%;min-width:0;will-change:transform;transition:box-shadow .35s ease-out,background-color .45s,border-color .45s}
+.pcard:hover{box-shadow:0 30px 64px -16px var(--shadow-deep),0 12px 28px -8px var(--shadow)}
+.pcard-media{display:block;position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--surface-2);flex:none}
+.pcard-media::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s ease-out;background:radial-gradient(120% 90% at 50% 8%,rgba(231,166,180,.20),rgba(110,109,85,.12) 45%,transparent 70%)}
+.pcard:hover .pcard-media::after{opacity:1}
+.pcard-media img{width:100%;height:100%;object-fit:cover;will-change:transform}
+.pcard-badge{position:absolute;top:10px;left:10px;background:var(--pink);color:#0C2418;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;border-radius:999px;z-index:2;transform:scale(0);transform-origin:top left;transition:transform .4s var(--bounce)}
+.pcard.badge-in .pcard-badge{transform:scale(1)}
+.pcard-badge.sale{background:var(--pink-2);color:#fff}
+.pcard-photos{position:absolute;right:10px;bottom:10px;background:rgba(12,36,24,.65);color:#F6F1E8;border-radius:999px;padding:3px 10px;font-size:10px;font-weight:700;z-index:2;display:none}
+.pcard-body{padding:14px 14px 16px;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:8px;flex:1}
+.pcard-name{font-family:'Unbounded';font-weight:600;font-size:12.5px;line-height:1.35;transition:color .3s;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:2.7em}
+.pcard:hover .pcard-name{color:var(--green)}
+.pcard-price{font-family:'Unbounded';font-weight:800;font-size:13px;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard-price s{color:var(--muted);font-weight:400;font-size:10px;margin-right:5px;opacity:.7}
+.pcard-cat{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard .btn-mini{margin-top:auto}

@@ -1,0 +1,16 @@
+/* =========================================================
+   МОДУЛЬ 2. SCROLL-REVEAL
+   ========================================================= */
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.22em;margin-bottom:-.22em}
+.wi{display:inline-block;will-change:transform}
+.w2{display:inline-block;vertical-align:top}
+.wi2{display:inline-block;will-change:transform,filter,opacity}
+.rv{opacity:0;transform:translateY(46px);transition:opacity .4s var(--eo),transform .4s var(--eo)}
+.rv-left{transform:translateX(-60px)}
+.rv-right{transform:translateX(60px)}
+.rv-scale{transform:scale(.92)}
+.rv.rv-in{opacity:1;transform:none}
+.rv-stagger>*{opacity:0;transform:translateY(20px);transition:opacity .35s var(--eo),transform .35s var(--eo)}
+.rv-stagger.rv-in>*{opacity:1;transform:none}
+.rv-title .wi{transform:translateY(130%);transition:transform .4s var(--eo)}
+.rv-title.rv-in .wi{transform:none}

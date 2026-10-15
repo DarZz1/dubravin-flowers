@@ -1,0 +1,21 @@
+{
+  "name": "dubravin-flowers-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Серверная часть DUBRAVIN&FLOWERS: API контента, серверная авторизация администратора, хранение и замена медиафайлов",
+  "main": "server/server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "admin": "node cli/admin.js",
+    "seed": "node cli/seed.js"
+  },
+  "dependencies": {
+    "busboy": "^1.6.0"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.0"
+  }
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" id="metaTheme" content="#F6F1E8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Управление сайтом — DUBRAVIN&amp;FLOWERS</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%236E6D55'/%3E%3Cpath d='M32 15C29 21 22 21 20 16C18 25 24 33 32 33C40 33 46 25 44 16C42 21 35 21 32 15Z' fill='%23F4F2EA'/%3E%3Cpath d='M31 33h2v13h-2z' fill='%237C8F6F'/%3E%3Cpath d='M31 45C24 43 20 38 20 33C26 35 30 39 31 43Z' fill='%238A9B7C'/%3E%3Cpath d='M33 43C34 39 38 35 44 33C44 38 40 43 33 45Z' fill='%238A9B7C'/%3E%3C/svg%3E">
+<script src="../assets/js/theme-init.js"></script>
+<script src="../assets/js/fonts.js"></script>
+<link rel="stylesheet" href="../assets/css/00-tokens.css">
+<link rel="stylesheet" href="../assets/css/04-buttons.css">
+<link rel="stylesheet" href="../assets/css/07-sections.css">
+<link rel="stylesheet" href="../assets/css/10-catalog.css">
+<link rel="stylesheet" href="../assets/css/12-footer.css">
+<link rel="stylesheet" href="../assets/css/13-responsive.css">
+<link rel="stylesheet" href="../assets/css/14-admin.css">
+<link rel="stylesheet" href="../assets/css/admin-ui.css">
+</head>
+<body>
+
+<!-- ============ ЭКРАН АВТОРИЗАЦИИ ============ -->
+<div id="loginScreen" class="auth-wrap" hidden>
+  <div class="auth-card">
+    <svg class="auth-logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#6E6D55"/><path d="M32 15C29 21 22 21 20 16C18 25 24 33 32 33C40 33 46 25 44 16C42 21 35 21 32 15Z" fill="#F4F2EA"/><path d="M31 33h2v13h-2z" fill="#7C8F6F"/><path d="M31 45C24 43 20 38 20 33C26 35 30 39 31 43Z" fill="#8A9B7C"/><path d="M33 43C34 39 38 35 44 33C44 38 40 43 33 45Z" fill="#8A9B7C"/></svg>
+    <h1 class="auth-title">DUBRAVIN<b>&amp;</b>FLOWERS</h1>
+    <p class="auth-sub">Панель управления сайтом</p>
+
+    <span class="auth-lock" id="authLock" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 018 0v2.7"/><circle cx="12" cy="15.4" r="1.4" fill="currentColor" stroke="none"/></svg></span>
+
+    <!-- Вход по паролю -->
+    <form id="loginForm" class="auth-form" autocomplete="on">
+      <!-- Поле логина показывается только когда рядом работает сервер CMS:
+           в этом режиме учётные данные проверяются на бэкенде.
+           На статическом хостинге поле скрыто — вход по-прежнему по паролю. -->
+      <div class="adm-field" id="loginField" hidden>
+        <label for="loginInput">Логин</label>
+        <input class="adm-input auth-input" id="loginInput" name="username" type="text"
+               autocomplete="username" maxlength="64" spellcheck="false">
+      </div>
+      <div class="adm-field">
+        <label for="pwInput">Пароль</label>
+        <input class="adm-input auth-input" id="pwInput" name="password" type="password"
+               autocomplete="current-password" maxlength="128" required>
+      </div>
+      <div class="auth-err" id="loginError" role="alert" hidden></div>
+      <button class="btn auth-btn" id="loginBtn" type="submit">Войти</button>
+    </form>
+
+    <p class="auth-hint" id="lockHint" role="status" hidden></p>
+    <a class="auth-back" href="../">← Вернуться на сайт</a>
+  </div>
+</div>
+
+<!-- ============ ПАНЕЛЬ CMS ============ -->
+<div id="appScreen" hidden>
+  <header class="adm-bar">
+    <div class="wrap adm-bar-in">
+      <a class="adm-logo" href="../" aria-label="DUBRAVIN&amp;FLOWERS — на сайт">
+        <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#6E6D55"/><path d="M32 15C29 21 22 21 20 16C18 25 24 33 32 33C40 33 46 25 44 16C42 21 35 21 32 15Z" fill="#F4F2EA"/><path d="M31 33h2v13h-2z" fill="#7C8F6F"/><path d="M31 45C24 43 20 38 20 33C26 35 30 39 31 43Z" fill="#8A9B7C"/><path d="M33 43C34 39 38 35 44 33C44 38 40 43 33 45Z" fill="#8A9B7C"/></svg>
+        <span>DUBRAVIN<b>&amp;</b>FLOWERS</span>
+        <span class="adm-tag">CMS</span>
+      </a>
+      <div class="adm-bar-act">
+        <button class="adm-theme" id="admTheme" type="button" aria-label="Переключить тему">
+          <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+          <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg>
+        </button>
+        <a class="btn-mini" style="width:auto" href="../">На сайт</a>
+        <button class="btn-mini" style="width:auto" id="logoutBtn" type="button">Выйти</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="admApp"></main>
+
+  <div class="adm-foot-note">
+    <div class="wrap">
+      <p>© <span id="admYear">2025</span> DUBRAVIN&amp;FLOWERS · панель управления. Изменения сохраняются на сервере хостинга и сразу публикуются на сайте для всех посетителей.</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="../assets/js/photo-factory.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/icons.js"></script>
+<script src="../assets/js/shared/toast.js"></script>
+<script src="../assets/js/admin/auth.js"></script>
+<script src="../assets/js/admin/admin-panel.js"></script>
+<script src="../assets/js/admin/admin-main.js"></script>
+</body>
+</html>

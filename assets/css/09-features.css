@@ -1,0 +1,34 @@
+/* =========================================================
+   МОДУЛЬ 9. ФИЧИ / ШАГИ / CTA
+   ========================================================= */
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.feat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px 20px;position:relative;overflow:hidden;transition:transform .3s ease-out,background-color .45s,border-color .45s,box-shadow .3s ease-out}
+.feat:hover{transform:translateY(-6px);box-shadow:0 24px 50px -14px var(--shadow-deep)}
+.f-ic{display:inline-flex;width:30px;height:30px;color:var(--green);margin-bottom:14px}
+.f-ic svg{width:100%;height:100%;transition:transform .3s ease-out}
+.feat:hover .f-ic svg{transform:translateY(-3px)}
+.feat:hover .f-ic-2 svg{animation:truckNudge .6s ease-out}
+.feat:hover .f-ic-4 svg{animation:snip .45s ease-out}
+@keyframes truckNudge{0%{transform:translateX(0)}35%{transform:translateX(4px)}70%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+@keyframes snip{0%{transform:scale(1)}45%{transform:scale(.82) rotate(-10deg)}100%{transform:scale(1)}}
+.feat h3{font-size:15px;margin-bottom:8px}
+.feat p{font-size:13px;color:var(--muted)}
+.feat .f-num{position:absolute;right:14px;top:10px;font-family:'Unbounded';font-weight:800;font-size:40px;color:rgba(30,91,65,.14);transition:color .3s ease-out,transform .3s ease-out}
+.feat:hover .f-num{color:rgba(30,91,65,.34);transform:translateY(-5px)}
+[data-theme="dark"] .feat .f-num{color:rgba(111,191,143,.16)}
+[data-theme="dark"] .feat:hover .f-num{color:rgba(111,191,143,.36)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.step{position:relative;padding:26px 22px;border-radius:var(--r);background:var(--panel);color:var(--panel-fg);overflow:hidden;transition:background-color .45s,color .45s,transform .3s ease-out,box-shadow .3s ease-out}
+.step:hover{transform:scale(1.02);box-shadow:0 26px 56px -16px var(--shadow-deep)}
+.step:nth-child(2){background:var(--green);color:#fff}
+.step:nth-child(3){background:var(--pink);color:#0C2418}
+.step b.st-n{font-family:'Unbounded';font-weight:800;font-size:44px;opacity:.28;display:block;margin-bottom:12px;transition:opacity .3s ease-out}
+.step:hover b.st-n{opacity:.45}
+.step h3{font-size:16px;margin-bottom:10px;transition:transform .3s ease-out}
+.step:hover h3{transform:translateY(-3px)}
+.step p{font-size:13.5px;opacity:.85;transition:opacity .3s ease-out,color .3s ease-out}
+.step:hover p{opacity:1}
+.cta-banner{position:relative;border-radius:32px;background:var(--panel);color:var(--panel-fg);padding:clamp(30px,5vw,64px);overflow:hidden;text-align:center;transition:background-color .45s,color .45s}
+.cta-banner h2{font-size:clamp(20px,3.2vw,40px);font-weight:800;margin-bottom:14px;position:relative;z-index:2;will-change:transform}
+.cta-banner p{color:var(--panel-muted);max-width:520px;margin:0 auto 26px;position:relative;z-index:2;will-change:transform}
+.cta-banner .btn{position:relative;z-index:2;will-change:transform}

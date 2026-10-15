@@ -1,0 +1,76 @@
+# DUBRAVIN&FLOWERS — конфигурация Netlify.
+# Сайт статический: сборки нет, публикуем корень как есть.
+# Заголовки безопасности описаны в файле _headers (здесь их не дублируем,
+# чтобы Netlify не отдавал каждый заголовок дважды).
+#
+# Серверная CMS подключается как Netlify Functions (backend/netlify).
+# ВАЖНО: на бесплатном тарифе файловая система функции эфемерна —
+# данные CMS живут только пока инстанс тёплый. Для постоянного хранения
+# подключите драйвер (Netlify Blobs / Supabase / R2) или переезжайте на
+# backend/server/server.js (VPS). Подробно — в DEPLOYMENT.md.
+
+[build]
+  publish = "."
+  # Команда обязательна: без неё Netlify не устанавливает зависимости,
+  # и функция не находит busboy / @netlify/blobs.
+  command = "npm install --omit=dev --no-audit --no-fund"
+  functions = "backend/netlify"
+
+[functions]
+  node_bundler = "esbuild"
+  # server/api.js и server/*.js подтягиваются как зависимости функции;
+  # seed.json нужен для первичного наполнения каталога без jsdom.
+  # busboy/streamsearch кладём рядом с функцией: они требуются в рантайме
+  # (media.js), а esbuild не может их проследить через динамический require.
+  # @netlify/blobs предоставляется самим рантаймом Functions (v2) — не дублируем.
+  included_files = ["backend/server/**", "backend/seed.json", "node_modules/busboy/**", "node_modules/streamsearch/**"]
+
+# Панель управления доступна по адресу /admin (физически admin/index.html).
+[[redirects]]
+  from = "/admin"
+  to = "/admin/"
+  status = 301
+  force = false
+
+# API серверной CMS
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+# Фото, загруженные через CMS, лежат в Netlify Blobs и отдаются функцией:
+# каталог публикации доступен только для чтения, писать в img/ нельзя.
+# force = true — иначе статический файл img/<ID>/<n>.jpg из деплоя
+# перехватил бы запрос и свежие загрузки не показывались бы.
+[[redirects]]
+  from = "/img/*"
+  to = "/.netlify/functions/img/:splat"
+  status = 200
+  force = true
+
+# Служебные каталоги и конфиги не отдаются посетителям
+[[redirects]]
+  from = "/tests/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/deploy/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/package.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Фолбэк: неизвестный адрес отдаёт витрину, hash-роутер покажет 404
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false

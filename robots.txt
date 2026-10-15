@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /tests/
+Disallow: /deploy/
+Disallow: /build_tools/
+
+

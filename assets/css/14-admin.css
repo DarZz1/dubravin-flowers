@@ -1,0 +1,37 @@
+/* =========================================================
+   МОДУЛЬ 14. АДМИН-ПАНЕЛЬ (CMS)
+   ========================================================= */
+.adm-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 30px}
+.adm-tabs button{padding:10px 20px;border-radius:999px;border:1.5px solid var(--line-2);font-weight:700;font-size:13px;color:var(--ink);background:transparent;transition:all .25s ease-out}
+.adm-tabs button:hover{transform:translateY(-2px);background:var(--chip-hover)}
+.adm-tabs button.on{background:var(--btn-bg);color:var(--btn-fg);border-color:var(--btn-bg)}
+.adm-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:16px;transition:background-color .45s,border-color .45s}
+.adm-card h3{font-size:15px;margin-bottom:14px}
+.adm-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.adm-thumb{width:64px;height:76px;border-radius:12px;object-fit:cover;background:var(--surface-2);flex:none;border:1px solid var(--line)}
+.adm-field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;min-width:0}
+.adm-field label{font-size:12px;font-weight:700;color:var(--muted)}
+.adm-input,.adm-textarea{background:var(--bg);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;font:inherit;font-size:13.5px;color:var(--ink);width:100%;transition:border-color .2s ease-out}
+.adm-input:focus,.adm-textarea:focus{outline:none;border-color:var(--green)}
+.adm-textarea{min-height:84px;resize:vertical}
+.adm-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.adm-checks{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 12px}
+.adm-check{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600}
+.adm-check input{width:18px;height:18px;accent-color:var(--green)}
+.adm-imgs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.adm-imgs .im{position:relative;width:72px;height:88px;border-radius:12px;overflow:hidden;border:1px solid var(--line);flex:none}
+.adm-imgs .im img{width:100%;height:100%;object-fit:cover}
+.adm-imgs .im button{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(12,36,24,.75);color:#fff;font-size:13px;line-height:1;display:grid;place-items:center}
+.adm-list-row{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.adm-list-row:last-child{border-bottom:none}
+.adm-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.adm-note{font-size:12.5px;color:var(--muted)}
+.adm-comp-row{display:flex;gap:8px;margin-bottom:8px}
+.adm-list-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.adm-list-head h3{margin:0}
+.adm-imgs .im.pending{outline:2px dashed var(--leaf,#3E8E63);outline-offset:-2px}
+.adm-btns .btn-mini[disabled],.adm-btns .btn-mini.disabled,.adm-list-head .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none}
+.adm-btns .btn-mini[disabled]:hover,.adm-btns .btn-mini.disabled:hover{transform:none!important}
+.adm-check input[disabled]{cursor:not-allowed;opacity:.55}
+.adm-check input[disabled]+span,.adm-check span.adm-note{opacity:.75}
+@media(max-width:575.98px){.adm-grid{grid-template-columns:1fr}}

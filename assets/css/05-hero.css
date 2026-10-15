@@ -1,0 +1,24 @@
+/* =========================================================
+   МОДУЛЬ 5. HERO
+   ========================================================= */
+.hero{padding:calc(var(--header-h) + 18px) 0 20px}
+.hero-card{background:var(--panel);color:var(--panel-fg);border:1px solid var(--line);border-radius:clamp(22px,3vw,38px);padding:clamp(22px,4vw,56px);position:relative;overflow:hidden;transition:background-color .45s,color .45s,border-color .45s}
+.hero-in{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(26px,4vw,52px);align-items:center}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;background:rgba(246,241,232,.08);border:1px solid rgba(246,241,232,.22);color:#8FD6AC;border-radius:999px;padding:7px 16px;font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:20px;max-width:100%}
+.hero-eyebrow .dot{width:8px;height:8px;border-radius:50%;background:#8FD6AC;flex:none}
+.hero h1{font-size:clamp(26px,4.4vw,60px);font-weight:800;margin-bottom:18px;color:var(--panel-fg)}
+.hero h1 em{font-style:normal;color:#E7A6B4}
+.hero-sub{font-size:clamp(14px,1.3vw,17px);color:var(--panel-muted);max-width:480px;margin-bottom:26px}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px}
+.hero-card .btn.ghost{color:var(--panel-fg);border-color:rgba(246,241,232,.35)}
+.hero-card .btn.ghost:hover{background:var(--panel-fg);color:var(--panel)}
+.hero-stats{display:flex;gap:26px;flex-wrap:wrap}
+.hstat b{font-family:'Unbounded';font-size:clamp(19px,2.2vw,30px);font-weight:800;color:#E7A6B4;display:block}
+.hstat span{font-size:12px;color:rgba(246,241,232,.62);font-weight:600;letter-spacing:.04em;max-width:180px}
+.hero-media{position:relative}
+.hero-frame{position:relative;border-radius:24px;overflow:hidden;aspect-ratio:4/5;background:#0E1D15;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+.hero-frame img{width:100%;height:100%;object-fit:cover;will-change:transform}
+.hero-chip{position:absolute;background:rgba(246,241,232,.92);background:var(--chip-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--ink);border-radius:16px;padding:10px 15px;font-size:12.5px;font-weight:700;display:flex;gap:9px;align-items:center;box-shadow:0 14px 30px rgba(0,0,0,.25);z-index:3;border:1px solid var(--line);max-width:calc(100% - 28px)}
+.hero-chip svg{width:18px;height:18px;color:var(--green);flex:none}
+.chip-1{top:14px;left:14px}
+.chip-2{bottom:14px;right:14px}
