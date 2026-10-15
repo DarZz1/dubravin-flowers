@@ -341,25 +341,43 @@ function bindAdmProdForm(){
       showToast("Можно добавить ещё "+room+" — лишние файлы пропущены");
       files=files.slice(0,room);
     }
+    var valid=[];
     files.forEach(function(f){
       if(!/^image\/(jpeg|png|webp)$/i.test(f.type||"")){showToast("Неподдерживаемый формат: "+(f.name||"файл")+" (только JPEG, PNG, WebP)");return;}
       if(f.size>8*1024*1024){showToast("Файл больше 8 МБ: "+(f.name||""));return;}
-      if(dfIsServerMode()){
-        /* Серверный режим: оригинал файла уйдёт на сервер (multipart),
-           превью показываем сразу через objectURL. */
-        admPending.push(f);
-        var url=null;
-        try{url=URL.createObjectURL(f);}catch(e){}
-        admPendingPrev.push(url||PH);
-        refreshImgs();
-      }else{
+      valid.push(f);
+    });
+    if(dfIsServerMode()){
+      /* Серверный режим: фото сжимается в браузере до 1600px (JPEG) и
+         уходит на сервер файлом (multipart). Сжатие защищает от лимита
+         размера запроса; если оно недоступно — отправляется оригинал.
+         Обработка последовательная: порядок фото в карточке сохраняется. */
+      var queue=valid.slice();
+      (function nextQueued(){
+        if(!queue.length){refreshImgs();return;}
+        var f=queue.shift();
+        resizeImgFile(f,1600,0.85,function(blob){
+          var item=f;
+          if(blob&&blob.size){
+            var nm=String(f.name||"photo").replace(/\.[^.]+$/,"")+".jpg";
+            try{item=new File([blob],nm,{type:"image/jpeg"});}catch(e){item=blob;}
+          }
+          admPending.push(item);
+          var url=null;
+          try{url=URL.createObjectURL(item);}catch(e){}
+          admPendingPrev.push(url||PH);
+          nextQueued();
+        });
+      })();
+    }else{
+      valid.forEach(function(f){
         /* Без сервера (локальный просмотр): сжимаем и храним в браузере */
         readImgFile(f,function(url2){
           if(url2){d.imgs=d.imgs||[];d.imgs.push(url2);refreshImgs();dbSave();}
           else showToast("Не удалось прочитать файл "+(f.name||""));
         });
-      }
-    });
+      });
+    }
   });
 
   /* ---- состав (максимум MAX_COMP позиций) ---- */
