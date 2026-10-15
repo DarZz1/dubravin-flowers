@@ -8,13 +8,13 @@ function cardHTML(p){
   var noImgs=!(p.imgs&&p.imgs.length);
   var badge=p.sale?'<span class="pcard-badge sale">Акция</span>':(p.hit?'<span class="pcard-badge">Хит</span>':'');
   return '<article class="pcard tilt" data-id="'+esc(p.id)+'">'+
-    '<a class="pcard-media" href="#/product/'+esc(p.id)+'" aria-label="'+esc(p.name)+'">'+
+    '<a class="pcard-media" href="/product/'+esc(p.id)+'" aria-label="'+esc(p.name)+'">'+
       '<img loading="lazy" decoding="async" '+(noImgs?'data-photo="'+esc(p.id)+'" ':'')+'src="'+esc(safeUrl(cover))+'" alt="'+esc(p.name)+'" data-imgfallback="'+(noImgs?"nex:"+esc(p.id)+":1":"ph")+'">'+
       badge+
       ((p.imgs&&p.imgs.length>1)?'<span class="pcard-photos" style="display:block">📷 '+p.imgs.length+'</span>':'')+
     '</a>'+
     '<div class="pcard-body">'+
-      '<a class="pcard-name" href="#/product/'+esc(p.id)+'">'+esc(p.name)+'</a>'+
+      '<a class="pcard-name" href="/product/'+esc(p.id)+'">'+esc(p.name)+'</a>'+
       '<div class="pcard-price">'+(p.old?'<s>'+fmt(p.old)+'</s>':'')+fmt(p.price)+'</div>'+
       '<div class="pcard-cat">'+esc(colName((p.cols||[])[0]))+'</div>'+
       '<button class="btn-mini" data-magnetic data-order="'+esc(p.name)+'" aria-label="Заказать '+esc(p.name)+' в VK">'+IC.vk+'<span>Заказать</span></button>'+
@@ -57,7 +57,7 @@ function tplHome(){
         '<h1 data-split="blur">Цветы, которые говорят вместо вас</h1>'+
         '<p class="hero-sub" data-anim="fade">Свежие букеты, гелиевые шары и композиции с доставкой по Кирову в любое время суток. Заказ — в один клик, прямо в сообщения нашего сообщества VK.</p>'+
         '<div class="hero-ctas" data-anim="fade">'+
-          '<a class="btn pink" href="#/catalog" data-magnetic>Смотреть каталог '+arrowSpan()+'</a>'+
+          '<a class="btn pink" href="/catalog" data-magnetic>Смотреть каталог '+arrowSpan()+'</a>'+
           '<button class="btn ghost" data-order="" data-magnetic>'+vkSpan()+'Написать в VK</button>'+
         '</div>'+
         '<div class="hero-stats" data-anim="fade">'+
@@ -79,15 +79,15 @@ function tplHome(){
   '</div></div>'+
   '<section><div class="wrap">'+
     '<div class="sec-head"><h2 class="sec-title" data-split>Выберите настроение</h2>'+
-    '<a class="sec-link" href="#/catalog">Весь каталог '+IC.arrowUp+'</a></div>'+
+    '<a class="sec-link" href="/catalog">Весь каталог '+IC.arrowUp+'</a></div>'+
     '<div class="cats" data-stagger>'+homeCollections().map(function(c){var cv=colCover(c);return ''+
-      '<a class="cat-tile" href="#/catalog/'+esc(c.id)+'"><img loading="lazy" decoding="async" src="'+esc(safeUrl(cv||PH))+'" alt="'+esc(c.name)+'" data-imgfallback="ph">'+
+      '<a class="cat-tile" href="/catalog/'+esc(c.id)+'"><img loading="lazy" decoding="async" src="'+esc(safeUrl(cv||PH))+'" alt="'+esc(c.name)+'" data-imgfallback="ph">'+
       '<span class="cat-label"><b>'+esc(c.name)+'</b><i>'+IC_DIAG+'</i></span></a>';}).join('')+'</div>'+
   '</div></section>'+
   (feat.length?
   '<section style="padding-top:8px"><div class="wrap">'+
     '<div class="sec-head"><h2 class="sec-title" data-split>Хиты этой недели</h2>'+
-    '<a class="sec-link" href="#/catalog">Смотреть все '+IC.arrowUp+'</a></div>'+
+    '<a class="sec-link" href="/catalog">Смотреть все '+IC.arrowUp+'</a></div>'+
     '<div class="pgrid" data-stagger>'+feat.map(cardHTML).join('')+'</div>'+
   '</div></section>':'')+
   '<div class="marquee pink" aria-hidden="true"><div class="mq-track">'+
@@ -124,9 +124,9 @@ function tplCatalog(cat){
   var first = list.slice(0,PAGE_SIZE);
   var rest = list.length-first.length;
   return '<div class="page-head"><div class="wrap">'+
-    '<div class="crumbs" data-anim="drop"><a href="#/">Главная</a> / <span>Каталог</span></div>'+
+    '<div class="crumbs" data-anim="drop"><a href="/">Главная</a> / <span>Каталог</span></div>'+
     '<h1 data-anim="drop">Каталог</h1>'+
-    '<p class="lead" data-anim="fade">Онлайн-витрина наличия: '+list.length+' товаров. Заказ оформляется в сообщениях сообщества VK — без форм и оплат на сайте. Цены не являются публичной офертой и подтверждаются флористом в переписке.</p>'+
+    '<p class="lead" data-anim="fade">Онлайн-витрина наличия: '+list.length+' товаров. Заказ оформляется в сообщениях сообщества VK. Цены не являются публичной офертой и подтверждаются флористом в переписке.</p>'+
     '<div class="chips" data-anim="fade" id="chipsBox">'+
       '<span class="chip-marker" id="chipMarker" aria-hidden="true"></span>'+
       '<button class="chip'+(cat==="all"?" on":"")+'" data-cat="all">Все товары</button>'+
@@ -208,6 +208,9 @@ function bindCatalogChips(){
       document.querySelectorAll(".chip[data-cat]").forEach(function(c){c.classList.toggle("on",c===ch);});
       moveChipMarker(false);
       var cat=ch.dataset.cat;
+      /* Адресная строка следует за выбранной подборкой — без перезагрузки
+         страницы; кнопка «назад» вернёт предыдущую подборку (popstate). */
+      syncUrl(cat==="all"?"/catalog":"/catalog/"+cat);
       var list=catalogList(cat);
       var grid=document.getElementById("pgrid");
       if(!grid)return;
@@ -231,7 +234,7 @@ function tplProduct(id){
     sim=sim.concat((DB.products||[]).filter(function(x){return x.id!==p.id && sim.indexOf(x)===-1;}));
   }
   sim=sim.slice(0,4);
-  var crumbsInner='<a href="#/">Главная</a> / <a href="#/catalog">Каталог</a> / <a href="#/catalog/'+esc((p.cols||[])[0])+'">'+esc(colName((p.cols||[])[0]))+'</a>';
+  var crumbsInner='<a href="/">Главная</a> / <a href="/catalog">Каталог</a> / <a href="/catalog/'+esc((p.cols||[])[0])+'">'+esc(colName((p.cols||[])[0]))+'</a>';
   return '<div class="wrap prod">'+
     '<div class="crumbs crumbs-mobile">'+crumbsInner+'</div>'+
     '<div class="prod-left">'+
@@ -250,7 +253,7 @@ function tplProduct(id){
       '<div class="comp-chips">'+(p.comp||[]).map(function(c){return '<span>'+esc(c)+'</span>';}).join('')+'</div>'+
       '<div class="prod-ctas">'+
         '<button class="btn" data-order="'+esc(p.name)+'" data-magnetic>'+vkSpan()+'Заказать в VK</button>'+
-        '<a class="btn ghost" href="#/catalog">В каталог '+IC.arrow+'</a>'+
+        '<a class="btn ghost" href="/catalog">В каталог '+IC.arrow+'</a>'+
       '</div>'+
       '<div class="prod-notes">'+
         '<div class="pnote">'+IC.truck+'<div><b>Бесплатная доставка 24/7</b><span>По Кирову — в любое время, среднее время 1–2 часа.</span></div></div>'+
@@ -266,7 +269,7 @@ function tplProduct(id){
 }
 function tplDelivery(){
   return '<div class="page-head"><div class="wrap">'+
-    '<div class="crumbs" data-anim="fade"><a href="#/">Главная</a> / <span>Доставка</span></div>'+
+    '<div class="crumbs" data-anim="fade"><a href="/">Главная</a> / <span>Доставка</span></div>'+
     '<h1 data-split>Доставка и заказ</h1>'+
     '<p class="lead" data-anim="fade">Мы доставляем цветы по Кирову круглосуточно и бесплатно. Даже если вы заказываете одну пачку тюльпанов в 4 утра.</p>'+
   '</div></div>'+
@@ -297,7 +300,7 @@ function tplDelivery(){
 }
 function tplContacts(){
   return '<div class="page-head"><div class="wrap">'+
-    '<div class="crumbs" data-anim="fade"><a href="#/">Главная</a> / <span>Контакты</span></div>'+
+    '<div class="crumbs" data-anim="fade"><a href="/">Главная</a> / <span>Контакты</span></div>'+
     '<h1 data-split>Контакты и магазины</h1>'+
     '<p class="lead" data-anim="fade">Два магазина в Кирове, круглосуточная доставка и соцсети, где мы каждый день показываем новинки и акции.</p>'+
   '</div></div>'+
@@ -322,12 +325,12 @@ function tplContacts(){
 }
 function tpl404(){
   return '<div class="page-head"><div class="wrap">'+
-    '<div class="crumbs" data-anim="fade"><a href="#/">Главная</a> / <span>404</span></div>'+
+    '<div class="crumbs" data-anim="fade"><a href="/">Главная</a> / <span>404</span></div>'+
     '<h1 data-split>Страница не найдена</h1>'+
     '<p class="lead" data-anim="fade">Возможно, она была удалена или указан неверный адрес. Загляните в каталог — там точно есть свежие букеты.</p>'+
     '<div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap" data-anim="fade">'+
-      '<a class="btn" href="#/catalog" data-magnetic>В каталог '+IC.arrow+'</a>'+
-      '<a class="btn ghost" href="#/">На главную</a>'+
+      '<a class="btn" href="/catalog" data-magnetic>В каталог '+IC.arrow+'</a>'+
+      '<a class="btn ghost" href="/">На главную</a>'+
     '</div>'+
   '</div></div>';
 }

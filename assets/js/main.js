@@ -14,9 +14,6 @@ function hidePreloader(){
 }
 setTimeout(hidePreloader,DF_PRELOADER_MAX_MS);
 function boot(){
-  if(location.hash && location.hash.indexOf("#/")!==0){
-    try{history.replaceState(null,"","#/");}catch(e){location.hash="#/";}
-  }
   document.getElementById("year").textContent=new Date().getFullYear();
   dbInit(function(){
     renderRoute();

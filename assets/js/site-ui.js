@@ -21,13 +21,16 @@ document.addEventListener("click",function(e){
     return;
   }
   if(e.target.closest("a[href^='http']"))return;
-  var a=e.target.closest("a[href^='#/']");
+  /* Внутренние ссылки витрины: чистые пути (/catalog) и старый формат (#/catalog) */
+  var a=e.target.closest("a[href^='#/'],a[href^='/']");
   if(a){
     if(e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0)return;
-    e.preventDefault();navigateTo(a.getAttribute("href"));return;
+    var href=a.getAttribute("href")||"";
+    if(href.indexOf("//")===0)return;   /* protocol-relative — не трогаем */
+    e.preventDefault();navigateTo(href);return;
   }
   var card=e.target.closest(".pcard");
-  if(card){navigateTo("#/product/"+card.dataset.id);}
+  if(card){navigateTo("/product/"+card.dataset.id);}
 });
 var burger=document.getElementById("burger");
 var menuEl=document.getElementById("menu");

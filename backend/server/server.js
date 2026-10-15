@@ -224,6 +224,19 @@ const server = http.createServer(async (req, res) => {
 
     const hit = resolveStatic(ctx.pathname);
     if (!hit) {
+      /* SPA-фолбэк: чистые адреса фронтенд-роутера (/catalog, /product/7…)
+         физически не существуют — отдаём index.html, роутер сам нарисует
+         страницу или свои 404. Только пути без расширения и не служебные. */
+      let spaPath = "";
+      try { spaPath = path.posix.normalize(decodeURIComponent(ctx.pathname)); } catch (e) { spaPath = ctx.pathname; }
+      const isRoute = !path.extname(spaPath) && !isBanned(spaPath.replace(/^\//, ""));
+      if (isRoute) {
+        const idx = path.resolve(config.staticRoot, "index.html");
+        try {
+          const st = fs.statSync(idx);
+          if (st.isFile()) return sendFile(req, res, idx, st.size);
+        } catch (e) { /* нет index.html — обычный 404 */ }
+      }
       audit.log("http.404", { path: ctx.pathname.slice(0, 200), ip: ctx.ip });
       return httpx.sendText(res, 404, "404 — Not Found", staticSecurityHeaders(req, ctx.pathname));
     }

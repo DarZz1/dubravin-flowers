@@ -4,7 +4,7 @@
    ========================================================= */
 function legalShell(title, crumb, upd, toc, blocks){
   return '<div class="page-head"><div class="wrap">'+
-    '<div class="crumbs" data-anim="fade"><a href="#/">Главная</a> / <span>'+crumb+'</span></div>'+
+    '<div class="crumbs" data-anim="fade"><a href="/">Главная</a> / <span>'+crumb+'</span></div>'+
     '<h1 data-split>'+title+'</h1>'+
     '<p class="lead" data-anim="fade">'+upd+'</p>'+
   '</div></div>'+

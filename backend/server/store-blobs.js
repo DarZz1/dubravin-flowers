@@ -34,6 +34,12 @@ const path = require("node:path");
 
 let blobs = null;         // объект-стор Netlify Blobs
 let blobsAvailable = false;
+let injectedModule = null; // модуль @netlify/blobs, внедрённый адаптером функции
+
+/* Адаптер Netlify-функции импортирует @netlify/blobs статически (esbuild
+   гарантирует его наличие в бандле) и передаёт сюда: ленивый require в
+   рантайме функции может не найти пакет. */
+function setBlobsModule(m) { injectedModule = m || null; }
 
 /* ---------- локальный mock хранилища ----------
    Netlify Blobs доступен только внутри Functions/Edge/Build, поэтому
@@ -109,21 +115,26 @@ function getStore() {
     blobs = mockStore(process.env.DF_BLOBS_MOCK);
     return blobs;
   }
-  /* require выполняется лениво: вне Netlify пакета может не быть,
-     и локальный сервер на файлах не должен из-за этого падать. */
-  const mod = require("@netlify/blobs");
+  /* Внедрённый адаптером модуль — в приоритете; ленивый require остаётся
+     запасным путём (вне Netlify пакета может не быть — тогда isAvailable()
+     вернёт false и бэкенд останется на файлах). */
+  const mod = injectedModule || require("@netlify/blobs");
   blobs = mod.getStore(STORE_NAME);
   return blobs;
 }
 
-/* Доступно ли хранилище (есть пакет и контекст сайта Netlify) */
+/* Доступно ли хранилище. Достаточно того, что пакет загружается и getStore()
+   не бросает исключение: реальную доступность контекста сайта проверяет
+   hydrate() — если Blobs не отвечают, адаптер функции откатится на файлы
+   в /tmp с заметным сообщением в логах. Прежняя проверка env-флагов
+   (NETLIFY/NETLIFY_SITE_ID) давала ложный «fs» в Runtime v2, где эти
+   переменные в песочнице функции могут отсутствовать. */
 function isAvailable() {
   if (blobsAvailable) return true;
   try {
     getStore();
-    blobsAvailable = !!(process.env.DF_BLOBS_MOCK || process.env.NETLIFY ||
-      process.env.NETLIFY_SITE_ID || config.forceBlobs);
-    return blobsAvailable;
+    blobsAvailable = true;
+    return true;
   } catch (e) {
     return false;
   }
@@ -224,7 +235,7 @@ const blobsDriver = {
 function reset() { blobs = null; blobsAvailable = false; }
 
 module.exports = {
-  STORE_NAME, DB_KEY, reset, mockStore,
+  STORE_NAME, DB_KEY, reset, mockStore, setBlobsModule,
   isAvailable, getStore,
   readDB, writeDB,
   mediaKey, putMedia, getMedia, deleteMedia, listMedia,

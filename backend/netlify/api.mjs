@@ -27,6 +27,11 @@ import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+/* Статический импорт: esbuild гарантированно включает @netlify/blobs в бандл
+   функции. Ленивый require() в рантайме Netlify пакет не находил, из-за чего
+   хранилище откатывалось на эфемерный /tmp ("storage":"fs") и правки CMS
+   терялись между вызовами функции. */
+import * as netlifyBlobs from "@netlify/blobs";
 
 const require = createRequire(import.meta.url);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -57,6 +62,8 @@ const audit = require(serverFile("audit.js"));
 const blobs = require(serverFile("store-blobs.js"));
 const { config, ensureDirs, ensureSecret } = require(serverFile("config.js"));
 
+blobs.setBlobsModule(netlifyBlobs);
+
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" };
 const MIME = {
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
@@ -73,10 +80,12 @@ function wireStorage() {
     store.setBackend({ readDB: blobs.readDB, writeDB: blobs.writeDB });
     media.setDriver(blobs.blobsDriver);
     audit.log("runtime.blobs", { store: blobs.STORE_NAME });
+    console.log("[dubravin-flowers] хранилище: Netlify Blobs («" + blobs.STORE_NAME + "»)");
   } else {
     /* Blobs недоступны (локальный запуск netlify dev без контекста сайта):
        остаёмся на файлах в /tmp — работать будет, но данные эфемерны. */
     audit.log("runtime.ephemeral", { reason: "blobs-unavailable" });
+    console.error("[dubravin-flowers] ВНИМАНИЕ: Netlify Blobs недоступны — данные эфемерны ( /tmp )");
   }
   wired = true;
 }
@@ -126,6 +135,7 @@ async function ensureReady() {
     console.error("[dubravin-flowers] " + msg);
     audit.log("runtime.blobs-failed", { message: String(e && e.message).slice(0, 200) });
     store.setBackend(null);
+    media.setDriver(media.fsDriver);   // медиа тоже возвращаем на файлы
     try { await store.hydrate(); } catch (e2) {}
   }
 }
