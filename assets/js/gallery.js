@@ -49,7 +49,7 @@ function initGallery(id){
     });
     show(0);
   }
-  if(p.imgs&&p.imgs.length){build(p.imgs.slice());}
+  if(p.imgs&&p.imgs.length){build(p.imgs.slice().map(imgUrl));}
   else{loadPhotos(id,build);}
   prev.addEventListener("click",function(){show(idx-1);});
   next.addEventListener("click",function(){show(idx+1);});

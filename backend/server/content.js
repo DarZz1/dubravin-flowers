@@ -100,6 +100,37 @@ async function setHero(patch) {
   return commit(next, "hero.update");
 }
 
+/* ---------- hero-фото как файл хостинга ----------
+   Псевдо-каталог "hero" в медиа-хранилище: img/hero/1.<ext>.
+   replace=true — прежний файл удаляется, в контент пишется готовый URL. */
+async function setHeroPhoto({ file }) {
+  const { content } = await getAll();
+  if (!file) return { ok: false, reason: "no-file", status: 400 };
+  const saved = await media.saveUploads({ productId: "hero", files: [file], replace: true });
+  if (!saved.urls.length) return { ok: false, reason: "no-valid-files", status: 400, rejected: saved.rejected };
+  const next = sanitize.sanitizeContent({ ...content, hero: { ...content.hero, img: saved.urls[0] } });
+  const res = await commit(next, "hero.photo", { url: saved.urls[0] });
+  return { ...res, url: saved.urls[0], rejected: saved.rejected };
+}
+
+/* ---------- обложка подборки как файл хостинга ----------
+   Псевдо-каталог "col-<ID подборки>": img/col-bouquets/1.<ext>. */
+async function setCollectionPhoto({ cid, file }) {
+  const { content } = await getAll();
+  const idc = sanitize.id(cid);
+  const list = (content.collections || []).slice();
+  const i = list.findIndex((x) => x.id === idc);
+  if (i < 0) return { ok: false, reason: "not-found", status: 404 };
+  if (!file) return { ok: false, reason: "no-file", status: 400 };
+  const folder = "col-" + idc;
+  const saved = await media.saveUploads({ productId: folder, files: [file], replace: true });
+  if (!saved.urls.length) return { ok: false, reason: "no-valid-files", status: 400, rejected: saved.rejected };
+  list[i] = { ...list[i], cover: saved.urls[0] };
+  const next = sanitize.sanitizeContent({ ...content, collections: list });
+  const res = await commit(next, "collection.photo", { id: idc, url: saved.urls[0] });
+  return { ...res, url: saved.urls[0], rejected: saved.rejected };
+}
+
 /* ---------- подборки ---------- */
 async function setCollections(list) {
   const { content } = await getAll();
@@ -300,7 +331,7 @@ async function commit(nextContent, event, data) {
 
 module.exports = {
   rev, ensureSeed, getAll,
-  setHero, setCollections, upsertCollection, deleteCollection,
+  setHero, setHeroPhoto, setCollections, upsertCollection, deleteCollection, setCollectionPhoto,
   listProducts, getProduct, createProduct, updateProduct, deleteProduct,
   attachPhotos, removePhoto,
   replaceAll, resetToSeed, commit,

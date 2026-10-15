@@ -93,7 +93,13 @@ document.getElementById("cookieOff").addEventListener("click",function(){try{loc
 if(matchMedia("(pointer:fine)").matches){
   var cur=document.getElementById("cur"),ring=document.getElementById("curRing");
   var mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
-  window.addEventListener("mousemove",function(e){mx=e.clientX;my=e.clientY;});
+  var curOn=false;
+  window.addEventListener("mousemove",function(e){
+    mx=e.clientX;my=e.clientY;
+    /* Кастомный курсор включается только после первого движения мыши:
+       до этого (и на прелоадере) пользователю виден системный курсор. */
+    if(!curOn){curOn=true;document.body.classList.add("cur-on");}
+  });
   (function loop(){
     rx+=(mx-rx)*.16;ry+=(my-ry)*.16;
     cur.style.transform="translate("+mx+"px,"+my+"px) translate(-50%,-50%)";

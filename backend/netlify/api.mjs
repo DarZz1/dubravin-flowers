@@ -247,7 +247,11 @@ async function serveMedia(req, res, pathname) {
     statusCode: 200,
     headers: {
       "Content-Type": MIME[ext] || "application/octet-stream",
-      "Cache-Control": "public, max-age=2592000",
+      /* Витрина добавляет к URL ?v=<rev>, поэтому содержимое адреса
+         никогда не меняется — можно кэшировать агрессивно: повторные
+         запросы (в т.ч. при переключении подборок) идут из кэша CDN
+         и не дёргают функцию. */
+      "Cache-Control": "public, max-age=31536000, immutable",
       "X-Content-Type-Options": "nosniff",
     },
     body: buf,          // Buffer — toWebResponse() отдаст его как есть

@@ -9,7 +9,7 @@ function cardHTML(p){
   var badge=p.sale?'<span class="pcard-badge sale">Акция</span>':(p.hit?'<span class="pcard-badge">Хит</span>':'');
   return '<article class="pcard tilt" data-id="'+esc(p.id)+'">'+
     '<a class="pcard-media" href="/product/'+esc(p.id)+'" aria-label="'+esc(p.name)+'">'+
-      '<img loading="lazy" decoding="async" '+(noImgs?'data-photo="'+esc(p.id)+'" ':'')+'src="'+esc(safeUrl(cover))+'" alt="'+esc(p.name)+'" data-imgfallback="'+(noImgs?"nex:"+esc(p.id)+":1":"ph")+'">'+
+      '<img loading="lazy" decoding="async" '+(noImgs?'data-photo="'+esc(p.id)+'" ':'')+'src="'+esc(safeUrl(imgUrl(cover)))+'" alt="'+esc(p.name)+'" data-imgfallback="'+(noImgs?"nex:"+esc(p.id)+":1":"ph")+'">'+
       badge+
       ((p.imgs&&p.imgs.length>1)?'<span class="pcard-photos" style="display:block">📷 '+p.imgs.length+'</span>':'')+
     '</a>'+
@@ -48,7 +48,7 @@ function homeCollections(){
 }
 function tplHome(){
   var feat=(DB.products||[]).filter(function(p){return p.main;}).slice(0,MAIN_LIMIT);
-  var heroImg=(DB.hero&&DB.hero.img)||((typeof dfServerMode==="function"&&dfServerMode())?PH:firstSrc("1",1));
+  var heroImg=imgUrl((DB.hero&&DB.hero.img)||((typeof dfServerMode==="function"&&dfServerMode())?PH:firstSrc("1",1)));
   return ''+
   '<section class="hero"><div class="wrap"><div class="hero-card">'+
     '<div class="hero-in">'+
@@ -81,7 +81,7 @@ function tplHome(){
     '<div class="sec-head"><h2 class="sec-title" data-split>Выберите настроение</h2>'+
     '<a class="sec-link" href="/catalog">Весь каталог '+IC.arrowUp+'</a></div>'+
     '<div class="cats" data-stagger>'+homeCollections().map(function(c){var cv=colCover(c);return ''+
-      '<a class="cat-tile" href="/catalog/'+esc(c.id)+'"><img loading="lazy" decoding="async" src="'+esc(safeUrl(cv||PH))+'" alt="'+esc(c.name)+'" data-imgfallback="ph">'+
+      '<a class="cat-tile" href="/catalog/'+esc(c.id)+'"><img loading="lazy" decoding="async" src="'+esc(safeUrl(imgUrl(cv)||PH))+'" alt="'+esc(c.name)+'" data-imgfallback="ph">'+
       '<span class="cat-label"><b>'+esc(c.name)+'</b><i>'+IC_DIAG+'</i></span></a>';}).join('')+'</div>'+
   '</div></section>'+
   (feat.length?
@@ -239,7 +239,7 @@ function tplProduct(id){
     '<div class="crumbs crumbs-mobile">'+crumbsInner+'</div>'+
     '<div class="prod-left">'+
       '<div class="prod-media solo" id="prodMedia">'+
-        '<img id="galMain" src="'+esc(safeUrl(prodCover(p)))+'" alt="'+esc(p.name)+'" data-imgfallback="'+((p.imgs&&p.imgs.length)?"ph":"nex:"+esc(p.id)+":1")+'">'+
+        '<img id="galMain" src="'+esc(safeUrl(imgUrl(prodCover(p))))+'" alt="'+esc(p.name)+'" data-imgfallback="'+((p.imgs&&p.imgs.length)?"ph":"nex:"+esc(p.id)+":1")+'">'+
         '<button class="gal-nav prev" id="galPrev" aria-label="Предыдущее фото">'+IC.chevL+'</button>'+
         '<button class="gal-nav next" id="galNext" aria-label="Следующее фото">'+IC.chevR+'</button>'+
         '<span class="gal-count" id="galCount">1 / 1</span>'+

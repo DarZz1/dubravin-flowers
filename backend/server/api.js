@@ -72,6 +72,7 @@ async function handle(ctx) {
     "/api/auth/me": ["GET", "HEAD"],
     "/api/admin/content": ["GET", "PUT", "POST"],
     "/api/admin/hero": ["GET", "PUT", "PATCH"],
+    "/api/admin/hero/photo": ["POST"],
     "/api/admin/collections": ["GET", "PUT", "POST"],
     "/api/admin/products": ["GET", "POST"],
     "/api/admin/admins": ["GET", "POST"],
@@ -85,6 +86,7 @@ async function handle(ctx) {
     [/^\/api\/admin\/products\/[A-Za-z0-9_-]{1,64}$/, ["GET", "PUT", "PATCH", "DELETE"]],
     [/^\/api\/admin\/products\/[A-Za-z0-9_-]{1,64}\/photos$/, ["POST", "DELETE"]],
     [/^\/api\/admin\/collections\/[A-Za-z0-9_-]{1,64}$/, ["PUT", "PATCH", "DELETE"]],
+    [/^\/api\/admin\/collections\/[A-Za-z0-9_-]{1,64}\/photo$/, ["POST"]],
   ];
   const allowed = ALLOWED[pathname] || (dynamic.find(([re]) => re.test(pathname)) || [])[1];
   if (allowed && !allowed.includes(method)) return err(405, "method-not-allowed");
@@ -198,6 +200,33 @@ async function handle(ctx) {
   }
 
   /* --- медиа --- */
+  /* Hero-фото и обложки подборок: один файл, замена прежнего.
+     Тело — multipart (в Node-режиме поток, в serverless — буфер). */
+  async function readSingleUpload() {
+    let parsed;
+    try {
+      parsed = ctx.stream
+        ? await media.parseMultipart(ctx.stream, { maxFiles: 1 })
+        : await media.parseMultipartBuffer(ctx.body, ctx.headers, { maxFiles: 1 });
+    } catch (e) {
+      return { error: { status: e.status || 400, reason: e.message === "upload-too-large" ? "upload-too-large" : "multipart-invalid" } };
+    }
+    return { file: parsed.files[0] || null, rejectedHint: parsed.files.length ? null : "no-file" };
+  }
+
+  if (pathname === "/api/admin/hero/photo" && method === "POST") {
+    const up = await readSingleUpload();
+    if (up.error) return err(up.error.status, up.error.reason);
+    return wrap(await content.setHeroPhoto({ file: up.file }));
+  }
+
+  const colPhotoMatch = /^\/api\/admin\/collections\/([A-Za-z0-9_-]{1,64})\/photo$/.exec(pathname);
+  if (colPhotoMatch && method === "POST") {
+    const up = await readSingleUpload();
+    if (up.error) return err(up.error.status, up.error.reason);
+    return wrap(await content.setCollectionPhoto({ cid: colPhotoMatch[1], file: up.file }));
+  }
+
   const photoMatch = /^\/api\/admin\/products\/([A-Za-z0-9_-]{1,64})\/photos$/.exec(pathname);
   if (photoMatch && method === "POST") {
     /* Тело — multipart. В Node-режиме ctx.stream есть, в serverless — ctx.body. */

@@ -19,7 +19,7 @@ function admSrc(u){
   if(/^https?:\/\//i.test(u)||u.indexOf("data:")===0||u.indexOf("blob:")===0||u.charAt(0)==="/")return u;
   return "../"+u;
 }
-function admThumb(src){return '<img class="adm-thumb" src="'+esc(safeUrl(admSrc(src||PH)))+'" alt="" data-imgfallback="ph">';}
+function admThumb(src){return '<img class="adm-thumb" src="'+esc(safeUrl(admSrc(imgUrl(src)||PH)))+'" alt="" data-imgfallback="ph">';}
 
 function tplAdmin(){
   return '<div class="page-head"><div class="wrap">'+
@@ -81,17 +81,45 @@ function admHero(){
     '</div></div>';
 }
 function bindAdmHero(){
-  var pending=null;
+  var pendingFile=null, pendingUrl=null;
   document.getElementById("heroFile").addEventListener("change",function(){
     var f=this.files&&this.files[0];if(!f)return;
-    readImgFile(f,function(url){
-      if(!url){showToast("Не удалось прочитать файл");return;}
-      pending=url;
-      document.querySelector("#admBody .adm-thumb").src=url;
-    });
+    if(!/^image\/(jpeg|png|webp)$/i.test(f.type||"")){showToast("Поддерживаются только JPEG, PNG и WebP");return;}
+    if(f.size>8*1024*1024){showToast("Файл больше 8 МБ");return;}
+    pendingFile=f;
+    try{pendingUrl=URL.createObjectURL(f);}catch(e){pendingUrl=null;}
+    if(pendingUrl)document.querySelector("#admBody .adm-thumb").src=pendingUrl;
   });
   document.getElementById("heroSave").addEventListener("click",function(){
-    var hv=pending||sanitizeString(document.getElementById("heroPath").value.trim(),2000000);
+    var btn=this;
+    /* Серверный режим: файл сжимается и уходит НА СЕРВЕР (img/hero/1.jpg),
+       а не dataURL в базу — hero хранится на хостинге и виден всем. */
+    if(pendingFile&&dfIsServerMode()){
+      btn.disabled=true;btn.textContent="Загружаем на сервер…";
+      resizeImgFile(pendingFile,1600,0.85,function(blob){
+        var item=pendingFile;
+        if(blob&&blob.size){try{item=new File([blob],"hero.jpg",{type:"image/jpeg"});}catch(e){}}
+        dfUploadSinglePhoto("/admin/hero/photo",item).then(function(r){
+          btn.disabled=false;btn.textContent="Сохранить";
+          if(r&&r.ok&&r.body&&r.body.ok){
+            pendingFile=null;
+            dfReloadContent().then(function(){renderAdmTab();showToast("Hero-изображение сохранено на сервере и опубликовано");});
+          }else if(r&&r.status===401){showToast("Серверная сессия истекла — войдите заново");}
+          else showToast("Не удалось загрузить изображение на сервер");
+        });
+      });
+      return;
+    }
+    if(pendingFile){
+      /* Без сервера: сжимаем в dataURL и храним локально */
+      readImgFile(pendingFile,function(url){
+        if(!url){showToast("Не удалось прочитать файл");return;}
+        DB.hero=DB.hero||{};DB.hero.img=url;pendingFile=null;
+        admPersist("Hero-изображение сохранено","Hero-изображение сохранено (локально)");
+      });
+      return;
+    }
+    var hv=sanitizeString(document.getElementById("heroPath").value.trim(),2000000);
     if(hv&&safeUrl(hv)==="#"){showToast("Недопустимый адрес изображения");return;}
     DB.hero=DB.hero||{};
     DB.hero.img=hv;
@@ -102,21 +130,27 @@ function bindAdmHero(){
 /* --- Подборки --- */
 function admCols(){
   var mainUsed=(DB.collections||[]).filter(function(c){return c.main;}).length;
+  var mainFull=mainUsed>=MAIN_LIMIT;
   var rows=(DB.collections||[]).map(function(c){
+    /* Обложка нужна только подборкам, которые видны на главной (плитки);
+       у остальных кнопки загрузки нет. */
+    var coverBtn=c.main
+      ? '<label class="btn-mini" style="width:auto" title="Изображение плитки на главной — загружается на сервер">Обложка<input type="file" data-act="cfile" accept="image/jpeg,image/png,image/webp" hidden></label>'
+      : '';
     return '<div class="adm-list-row" data-cid="'+c.id+'">'+
-      admThumb(colCover(c))+
+      (c.main?admThumb(colCover(c)):'')+
       '<input class="adm-input" style="max-width:260px" data-act="cname" value="'+esc(c.name)+'">'+
-      '<label class="adm-check" title="Показывать подборку на главной странице"><input type="checkbox" data-act="cmain" '+(c.main?"checked":"")+'> 🏠 На главной</label>'+
-      '<label class="btn-mini" style="width:auto">Обложка<input type="file" data-act="cfile" accept="image/*" hidden></label>'+
+      '<label class="adm-check" title="'+(c.main?"Показывать подборку на главной странице":"Мест на главной нет: снимите отметку с другой подборки")+'"><input type="checkbox" data-act="cmain" '+(c.main?"checked":"")+((!c.main&&mainFull)?" disabled":"")+'> 🏠 На главной</label>'+
+      coverBtn+
       '<button class="btn-mini" style="width:auto" data-act="cdel">Удалить</button>'+
     '</div>';
   }).join("");
   return '<div class="adm-card"><h3>Подборки (категории каталога)</h3>'+
-    (rows||'<p class="adm-note">Подборок пока нет — добавьте первую.</p>')+
-    '<div class="adm-row" style="margin-top:16px">'+
+    '<div class="adm-row" style="margin:4px 0 14px">'+
     '<input class="adm-input" id="newColName" placeholder="Название новой подборки" style="max-width:260px">'+
-    '<button class="btn" id="newColAdd" style="padding:10px 18px;font-size:13px">Добавить</button></div>'+
-    '<p class="adm-note" style="margin-top:10px">На главной странице показываются только подборки с отметкой «🏠 На главной» — не более '+MAIN_LIMIT+'. Сейчас отмечено: '+mainUsed+' из '+MAIN_LIMIT+'. Обложка подборки — изображение плитки на главной и превью в каталоге; пока её нет, подставляется обложка первого товара. Удаление подборки не удаляет товары.</p></div>';
+    '<button class="btn" id="newColAdd" style="padding:10px 18px;font-size:13px">+ Добавить подборку</button></div>'+
+    (rows||'<p class="adm-note">Подборок пока нет — добавьте первую.</p>')+
+    '<p class="adm-note" style="margin-top:10px">На главной странице показываются только подборки с отметкой «🏠 На главной» — не более '+MAIN_LIMIT+' (сейчас отмечено: '+mainUsed+' из '+MAIN_LIMIT+'). Обложка — изображение плитки на главной, загружается на сервер; пока её нет, подставляется фото первого товара подборки. Удаление подборки не удаляет товары.</p></div>';
 }
 function bindAdmCols(){
   var body=document.getElementById("admBody");
@@ -139,9 +173,26 @@ function bindAdmCols(){
       renderAdmTab();
       showToast(col.main?"Подборка показывается на главной":"Подборка убрана с главной");
     });
-    row.querySelector('[data-act="cfile"]').addEventListener("change",function(){
+    var cfileEl=row.querySelector('[data-act="cfile"]');
+    if(cfileEl)cfileEl.addEventListener("change",function(){
       var f=this.files&&this.files[0];if(!f)return;
-      readImgFile(f,function(url){if(url){col.cover=url;dbSave();renderAdmTab();showToast("Обложка обновлена");}});
+      if(!/^image\/(jpeg|png|webp)$/i.test(f.type||"")){showToast("Поддерживаются только JPEG, PNG и WebP");return;}
+      if(f.size>8*1024*1024){showToast("Файл больше 8 МБ");return;}
+      /* Серверный режим: обложка уходит файлом на хостинг (img/col-<id>/1.jpg) */
+      if(dfIsServerMode()){
+        resizeImgFile(f,1200,0.85,function(blob){
+          var item=f;
+          if(blob&&blob.size){try{item=new File([blob],"cover.jpg",{type:"image/jpeg"});}catch(e){}}
+          dfUploadSinglePhoto("/admin/collections/"+encodeURIComponent(cid)+"/photo",item).then(function(r){
+            if(r&&r.ok&&r.body&&r.body.ok){
+              dfReloadContent().then(function(){renderAdmTab();showToast("Обложка сохранена на сервере и опубликована");});
+            }else if(r&&r.status===401){showToast("Серверная сессия истекла — войдите заново");}
+            else showToast("Не удалось загрузить обложку на сервер");
+          });
+        });
+        return;
+      }
+      readImgFile(f,function(url){if(url){col.cover=url;dbSave();renderAdmTab();showToast("Обложка обновлена (локально)");}});
     });
     row.querySelector('[data-act="cdel"]').addEventListener("click",function(){
       if(!confirm("Удалить подборку «"+col.name+"»?"))return;
@@ -152,8 +203,11 @@ function bindAdmCols(){
   document.getElementById("newColAdd").addEventListener("click",function(){
     var name=document.getElementById("newColName").value.trim();
     if(!name){showToast("Введите название");return;}
-    DB.collections.push({id:"c"+Date.now(),name:name,cover:"",main:false});
+    DB.collections.unshift({id:"c"+Date.now(),name:name,cover:"",main:false});
     dbSave();renderAdmTab();showToast("Подборка добавлена");
+  });
+  document.getElementById("newColName").addEventListener("keydown",function(e){
+    if(e.key==="Enter"){e.preventDefault();document.getElementById("newColAdd").click();}
   });
 }
 
@@ -230,7 +284,12 @@ function admProdForm(){
     '<div class="adm-field"><label>Подборки</label><div class="adm-checks">'+colsChecks+'</div></div>'+
     '<div class="adm-checks">'+
       '<label class="adm-check"><input type="checkbox" data-f="hit" '+(d.hit?"checked":"")+'> 🔥 Хит</label>'+
-      '<label class="adm-check" title="На главной показываются только '+MAIN_LIMIT+' отмеченные карточки"><input type="checkbox" data-f="main" '+(d.main?"checked":"")+'> 🏠 Показывать на главной</label>'+
+      (function(){
+        var mainFull=(!d.main)&&mainProductsCount(d.id)>=MAIN_LIMIT;
+        return '<label class="adm-check" title="'+(mainFull?"Все "+MAIN_LIMIT+" места на главной заняты — снимите отметку с другого товара":"На главной показываются только "+MAIN_LIMIT+" отмеченные карточки")+'">'+
+          '<input type="checkbox" data-f="main" '+(d.main?"checked":"")+(mainFull?" disabled":"")+'> 🏠 Показывать на главной'+
+          (mainFull?' <span class="adm-note">('+MAIN_LIMIT+' места заняты)</span>':'')+'</label>';
+      })()+
     '</div>'+
     '<div class="adm-field"><label>Фото товара (до '+MAX_IMGS+' штук, первое — обложка)</label>'+
       '<div class="adm-imgs" id="admImgs"></div>'+
@@ -298,7 +357,7 @@ function bindAdmProdForm(){
     var box=document.getElementById("admImgs");
     if(!box)return;
     var html=(d.imgs||[]).map(function(u,i){
-      return '<span class="im"><img src="'+esc(safeUrl(admSrc(u)))+'" alt="" data-imgfallback="ph"><button data-delimg="'+i+'" title="Удалить">×</button></span>';
+      return '<span class="im"><img src="'+esc(safeUrl(admSrc(imgUrl(u))))+'" alt="" data-imgfallback="ph"><button data-delimg="'+i+'" title="Удалить">×</button></span>';
     }).join("");
     html+=admPendingPrev.map(function(u,i){
       return '<span class="im pending" title="Загрузится на сервер при сохранении"><img src="'+esc(u)+'" alt=""><button data-delpend="'+i+'" title="Убрать">×</button></span>';

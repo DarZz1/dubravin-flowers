@@ -45,4 +45,7 @@ button{font-family:inherit;border:none;background:none;cursor:pointer;color:inhe
 ::-webkit-scrollbar-thumb{background:var(--green);border-radius:8px}
 h1,h2,h3{font-family:'Unbounded',sans-serif;font-weight:600;line-height:1.14;letter-spacing:-.01em}
 .wrap{width:min(1240px,92vw);margin:0 auto}
-@media (pointer:fine){ *{cursor:none!important} }
+/* Системный курсор прячется ТОЛЬКО после первого движения мыши, когда
+   кастомный курсор активирован (body.cur-on ставит site-ui.js). До этого —
+   в т.ч. на прелоадере — виден обычный курсор. */
+@media (pointer:fine){ body.cur-on,body.cur-on *{cursor:none!important} }

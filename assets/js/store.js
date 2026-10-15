@@ -172,6 +172,27 @@ function dfUploadPhotos(productId,files,replace){
   return dfApiRequest("POST","/admin/products/"+encodeURIComponent(productId)+"/photos",fd);
 }
 
+/* Загрузка ОДНОГО изображения на сервер (hero, обложка подборки).
+   Возвращает промис ответа API или null, если серверного режима нет. */
+function dfUploadSinglePhoto(endpoint,file){
+  if(!dfIsServerMode())return Promise.resolve(null);
+  var fd=new FormData();
+  fd.append("photo",file,file.name||"photo");
+  return dfApiRequest("POST",endpoint,fd);
+}
+
+/* Версионирование URL медиа: img/<id>/<n>.jpg?v=<ревизия контента>.
+   Содержимое адреса при неизменной ревизии не меняется, поэтому витрина
+   кэширует такие картинки «навечно», а после правок в CMS ревизия растёт
+   и браузер/CDN запрашивают свежий файл. Только для отображения —
+   в данных хранятся чистые URL. */
+function imgUrl(u){
+  u=String(u==null?"":u);
+  if(!u)return u;
+  if(u.indexOf("img/")===0&&u.indexOf("?")<0&&DF_REV!==null)return u+"?v="+DF_REV;
+  return u;
+}
+
 function dbSave(){
   /* Обнаружен сервер CMS — источник истины ОН: правка сразу уходит
      на сервер и публикуется для всех посетителей. Браузерное хранилище
