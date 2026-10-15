@@ -1,8 +1,16 @@
 /* =========================================================
-   BACKEND · АДАПТЕР ДЛЯ NETLIFY FUNCTIONS
+   BACKEND · АДАПТЕР ДЛЯ NETLIFY FUNCTIONS (Runtime v2)
    Обрабатывает и API (/api/*), и раздачу медиа (/img/*) —
    на Netlify обе задачи решают функции, потому что файловая
    система публикации доступна только для чтения.
+
+   Runtime v2 (современный стандарт Netlify Functions):
+     • вход — веб-объект Request + context;
+     • выход — веб-объект Response.
+   Старый «лямбда-формат» ({statusCode, headers, body}) платформой
+   больше не принимается (Lambda compatibility mode снят с поддержки),
+   поэтому ответ конвертируется в Response здесь же. Для локальных
+   тестов и старых инструментов сохранён и путь v1-события.
 
    Хранилище: Netlify Blobs (постоянное, без внешних аккаунтов).
    Данные переживают выгрузку инстанса и деплои.
@@ -122,7 +130,28 @@ async function ensureReady() {
   }
 }
 
-/* ---------- разбор запроса ---------- */
+/* ---------- разбор пути ---------- */
+function normalizePathname(rawPathname) {
+  let pathname = String(rawPathname || "/");
+  /* Возможны варианты:
+       a) /api/health — при rewrite с публичного адреса (Runtime v2 передаёт
+          оригинальный URL) или полный путь внутри splat;
+       b) /.netlify/functions/api/… — прямой вызов функции.
+     В случае (b) восстанавливаем префикс по имени функции.            */
+  const FN_PREFIX = "/.netlify/functions/";
+  if (pathname.startsWith(FN_PREFIX)) {
+    const rest = pathname.slice(FN_PREFIX.length);
+    const slash = rest.indexOf("/");
+    const fnName = slash === -1 ? rest : rest.slice(0, slash);
+    const sub = slash === -1 ? "" : rest.slice(slash);
+    if (/^\/(api|img)(\/|$)/.test(sub)) pathname = sub;                        // вариант (a)
+    else pathname = "/" + fnName.replace(/[^A-Za-z0-9_-]/g, "") + (sub || "/"); // вариант (b)
+  }
+  if (!pathname.startsWith("/")) pathname = "/" + pathname;
+  return pathname;
+}
+
+/* ---------- v1-событие (локальные тесты, старые инструменты) ---------- */
 function parseEvent(event) {
   const rawPath = event.rawUrl || event.path || "/";
   let url;
@@ -131,23 +160,6 @@ function parseEvent(event) {
   const headers = Object.assign({}, event.headers || {});
   if (!headers["x-forwarded-proto"]) headers["x-forwarded-proto"] = "https";
 
-  /* Разбор пути. Возможны два варианта:
-       a) /​.netlify/functions/api/api/content — полный путь внутри splat;
-       b) /health — Netlify передаёт путь ОТНОСИТЕЛЬНО имени функции
-          (функция api.mjs обслуживает /api/*, img.mjs — /img/*).
-     В случае (b) восстанавливаем префикс по имени функции.            */
-  const FN_PREFIX = "/.netlify/functions/";
-  let pathname = url.pathname;
-  if (pathname.startsWith(FN_PREFIX)) {
-    const rest = pathname.slice(FN_PREFIX.length);
-    const slash = rest.indexOf("/");
-    const fnName = slash === -1 ? rest : rest.slice(0, slash);
-    const sub = slash === -1 ? "" : rest.slice(slash);
-    if (/^\/(api|img)(\/|$)/.test(sub)) pathname = sub;                       // вариант (a)
-    else pathname = "/" + fnName.replace(/[^A-Za-z0-9_-]/g, "") + (sub || "/"); // вариант (b)
-  }
-  if (!pathname.startsWith("/")) pathname = "/" + pathname;
-
   const ip =
     (event.requestContext && event.requestContext.identity && event.requestContext.identity.sourceIp) ||
     headers["x-forwarded-for"] || headers["client-ip"] || "unknown";
@@ -155,8 +167,30 @@ function parseEvent(event) {
   let body = Buffer.alloc(0);
   if (event.body) body = event.isBase64Encoded ? Buffer.from(event.body, "base64") : Buffer.from(event.body, "utf8");
 
-  return { headers, pathname, ip: String(ip).slice(0, 45), body, url,
-    method: String(event.httpMethod || (event.requestContext && event.requestContext.httpMethod) || "GET").toUpperCase() };
+  return {
+    headers, pathname: normalizePathname(url.pathname), ip: String(ip).slice(0, 45), body, url,
+    method: String(event.httpMethod || (event.requestContext && event.requestContext.httpMethod) || "GET").toUpperCase(),
+  };
+}
+
+/* ---------- v2: веб-Request → внутренний формат ---------- */
+async function parseRequest(request, context) {
+  const url = new URL(request.url, "http://localhost");
+  const headers = {};
+  try { request.headers.forEach((v, k) => { headers[String(k).toLowerCase()] = v; }); } catch (e) { /* Headers недоступен — работаем пустыми */ }
+  if (!headers["x-forwarded-proto"]) headers["x-forwarded-proto"] = "https";
+
+  const method = String(request.method || "GET").toUpperCase();
+  let body = Buffer.alloc(0);
+  if (method !== "GET" && method !== "HEAD") {
+    try { body = Buffer.from(await request.arrayBuffer()); } catch (e) { body = Buffer.alloc(0); }
+  }
+
+  const ip =
+    (context && (context.ip || (context.requestContext && context.requestContext.identity && context.requestContext.identity.sourceIp))) ||
+    headers["x-forwarded-for"] || headers["client-ip"] || "unknown";
+
+  return { headers, pathname: normalizePathname(url.pathname), ip: String(ip).slice(0, 45), body, url, method };
 }
 
 /* ---------- раздача медиа из Blobs ---------- */
@@ -172,18 +206,16 @@ async function serveMedia(req, res, pathname) {
     statusCode: 200,
     headers: {
       "Content-Type": MIME[ext] || "application/octet-stream",
-      "Content-Length": String(buf.length),
       "Cache-Control": "public, max-age=2592000",
       "X-Content-Type-Options": "nosniff",
     },
-    body: buf.toString("base64"),
-    isBase64Encoded: true,
+    body: buf,          // Buffer — toWebResponse() отдаст его как есть
+    binary: true,
   };
 }
 
-/* ---------- обработчик ---------- */
-export default async function handler(event) {
-  const req = parseEvent(event);
+/* ---------- общая обработка (формат v1-объекта) ---------- */
+async function processReq(req) {
   try {
     await ensureReady();
 
@@ -259,4 +291,40 @@ export default async function handler(event) {
     try { await store.flush(); } catch (e2) {}
     return { statusCode: 500, headers: JSON_HEADERS, body: JSON.stringify({ ok: false, error: "internal" }) };
   }
+}
+
+/* ---------- конвертация в веб-Response (Runtime v2) ---------- */
+function toWebResponse(out) {
+  const status = Number.isInteger(out.statusCode) ? out.statusCode : 200;
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(out.headers || {})) {
+    if (v === undefined || v === null) continue;
+    const key = String(k);
+    if (key.toLowerCase() === "content-length") continue;   // рантайм посчитает сам
+    if (Array.isArray(v)) { for (const x of v) headers.append(key, String(x)); }
+    else headers.set(key, String(v));
+  }
+  const nullBody = status === 204 || status === 205 || status === 304;
+  let body = null;
+  if (!nullBody) {
+    if (out.binary || Buffer.isBuffer(out.body)) body = new Uint8Array(out.body);
+    else body = out.body === undefined || out.body === null ? "" : String(out.body);
+  }
+  return new Response(body, { status, headers });
+}
+
+/* ---------- обработчик ---------- */
+export default async function handler(input, context) {
+  /* Runtime v2 (Netlify): на вход — веб-Request, на выход — веб-Response. */
+  const isWebRequest =
+    (typeof Request !== "undefined" && input instanceof Request) ||
+    (input && typeof input === "object" && typeof input.method === "string" && typeof input.url === "string" && !input.httpMethod);
+  if (isWebRequest) {
+    const req = await parseRequest(input, context);
+    const out = await processReq(req);
+    return toWebResponse(out);
+  }
+  /* Legacy v1-событие: локальные тесты, старые версии netlify dev. */
+  const req = parseEvent(input || {});
+  return processReq(req);
 }
