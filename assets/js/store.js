@@ -274,6 +274,41 @@ function prodCover(p){
   if(typeof dfServerMode==="function"&&dfServerMode())return PH;
   return firstSrc(p.id,1);
 }
+/* загрузка файла изображения → сжатие до max px → Blob (JPEG).
+   Используется для отправки фото НА СЕРВЕР: оригиналы с телефона (5–10 МБ)
+   упираются в лимит размера запроса serverless-функций, а после сжатия
+   фото весит сотни КБ. Если canvas недоступен/файл не читается — cb(null),
+   вызывающий код отправит оригинал как есть. */
+function resizeImgFile(file,max,quality,cb){
+  var c=null;
+  try{c=document.createElement("canvas");}catch(e){cb(null);return;}
+  if(!c||typeof c.getContext!=="function"){cb(null);return;}
+  var probe=null;
+  try{probe=c.getContext("2d");}catch(e){probe=null;}
+  if(!probe){cb(null);return;}
+  try{
+    var fr=new FileReader();
+    fr.onload=function(){
+      var im=new Image();
+      im.onload=function(){
+        try{
+          var w=im.width||max,h=im.height||max;
+          if(w>max){h=Math.round(h*max/w);w=max;}
+          if(h>max){w=Math.round(w*max/h);h=max;}
+          c.width=w;c.height=h;
+          c.getContext("2d").drawImage(im,0,0,w,h);
+          if(typeof c.toBlob==="function"){
+            c.toBlob(function(b){cb(b||null);},"image/jpeg",quality);
+          }else{cb(null);}
+        }catch(e){cb(null);}
+      };
+      im.onerror=function(){cb(null);};
+      im.src=fr.result;
+    };
+    fr.onerror=function(){cb(null);};
+    fr.readAsDataURL(file);
+  }catch(e){cb(null);}
+}
 /* загрузка файла изображения → сжатие до 1200px → dataURL */
 function readImgFile(file,cb){
   var fr=new FileReader();
