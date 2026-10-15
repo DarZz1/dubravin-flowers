@@ -90,7 +90,16 @@ function wireStorage() {
   wired = true;
 }
 
-/* Первый админ из переменных окружения: в них хэш scrypt, а не пароль */
+/* Первый админ из переменных окружения: в них хэш scrypt, а не пароль.
+
+   Обычный режим: учётка создаётся ОДИН раз, пока админов нет (иначе env-
+   переменные позволяли бы бесконечно сбрасывать пароль).
+
+   Аварийный режим DF_BOOTSTRAP_FORCE=1: если учётка с таким логином уже
+   есть — её хэш пароля заменяется на хэш из переменной (старые сессии
+   гасятся). Используется, когда пароль утерян/утёк. Флаг идемпотентен
+   (повторные вызовы БД не переписывают) и после входа переменные
+   DF_BOOTSTRAP_* вместе с FORCE нужно удалить. */
 async function bootstrapAdmin() {
   const login = process.env.DF_BOOTSTRAP_LOGIN;
   const hash = process.env.DF_BOOTSTRAP_HASH;
@@ -98,26 +107,48 @@ async function bootstrapAdmin() {
   const auth = require(serverFile("auth.js"));
   if (!auth.isHashFormatValid(hash)) {
     audit.log("bootstrap.rejected", { reason: "bad-hash-format" });
+    console.error("[dubravin-flowers] bootstrap ОТКЛОНЁН: DF_BOOTSTRAP_HASH повреждён/обрезан при копировании (ожидается scrypt$N$r$p$<32hex>$<128hex> одной строкой)");
     return null;
   }
-  const existing = store.read((db) => db.admins.length);
-  if (existing > 0) return null;
   const loginErr = auth.validateLogin(login);
   if (loginErr) {
     audit.log("bootstrap.rejected", { reason: loginErr });
+    console.error("[dubravin-flowers] bootstrap ОТКЛОНЁН: недопустимый DF_BOOTSTRAP_LOGIN (" + loginErr + ")");
     return null;
   }
+  const force = /^(1|true|yes|on)$/i.test(String(process.env.DF_BOOTSTRAP_FORCE || ""));
+  const existing = store.read((db) => db.admins.length);
+  if (existing > 0 && !force) return null;
+  const norm = auth.normalizeLogin(login);
+  /* Идемпотентность FORCE: если хэш уже применён, БД не трогаем вовсе
+     (иначе каждый запрос переписывал бы блоб из-за meta-счётчиков). */
+  if (existing > 0) {
+    const applied = store.read((db) => db.admins.find((a) => a.loginNorm === norm && a.passHash === hash));
+    if (applied) return null;
+  }
+  let action = "created";
   await store.update((db) => {
-    db.admins.push({
-      id: require("node:crypto").randomBytes(8).toString("hex"),
-      login: String(login).trim(),
-      loginNorm: auth.normalizeLogin(login),
-      passHash: hash,
-      createdAt: Date.now(),
-      mustChangePassword: true,      // предложим сменить при первом входе
-    });
+    const cur = db.admins.find((a) => a.loginNorm === norm);
+    if (cur) {
+      cur.login = String(login).trim();
+      cur.passHash = hash;
+      cur.mustChangePassword = true;
+      cur.passChangedAt = Date.now();
+      db.sessions = [];                    // старые сессии аннулируем
+      action = "updated";
+    } else {
+      db.admins.push({
+        id: require("node:crypto").randomBytes(8).toString("hex"),
+        login: String(login).trim(),
+        loginNorm: norm,
+        passHash: hash,
+        createdAt: Date.now(),
+        mustChangePassword: true,          // предложим сменить при первом входе
+      });
+    }
   });
-  audit.log("bootstrap.created", { login: String(login).trim() });
+  audit.log("bootstrap." + action, { login: String(login).trim() });
+  console.log("[dubravin-flowers] bootstrap: учётка «" + String(login).trim() + "» " + (action === "updated" ? "ОБНОВЛЕНА (пароль сброшен из env)" : "создана"));
   return String(login).trim();
 }
 
