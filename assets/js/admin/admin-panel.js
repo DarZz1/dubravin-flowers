@@ -73,12 +73,11 @@ function admHero(){
   var img=(DB.hero&&DB.hero.img)||"";
   return '<div class="adm-card"><h3>Изображение Hero (главный экран)</h3>'+
     '<div class="adm-row" style="margin-bottom:14px">'+admThumb(img)+'</div>'+
-    '<div class="adm-field"><label>Ссылка на изображение (необязательно — можно просто загрузить файл)</label>'+
-    '<input class="adm-input" id="heroPath" value="'+esc(img)+'"></div>'+
     '<div class="adm-btns">'+
-      '<label class="btn ghost" style="padding:10px 18px;font-size:13px">Загрузить с устройства<input type="file" id="heroFile" accept="image/*" hidden></label>'+
+      '<label class="btn ghost" style="padding:10px 18px;font-size:13px">Выбрать изображение<input type="file" id="heroFile" accept="image/jpeg,image/png,image/webp" hidden></label>'+
       '<button class="btn" id="heroSave" style="padding:10px 18px;font-size:13px">Сохранить</button>'+
-    '</div></div>';
+    '</div>'+
+    '<p class="adm-note" style="margin-top:10px">Файл загружается на сервер хостинга и сразу публикуется на сайте (JPEG/PNG/WebP, до 8 МБ — изображение будет сжато автоматически).</p></div>';
 }
 function bindAdmHero(){
   var pendingFile=null, pendingUrl=null;
@@ -119,11 +118,7 @@ function bindAdmHero(){
       });
       return;
     }
-    var hv=sanitizeString(document.getElementById("heroPath").value.trim(),2000000);
-    if(hv&&safeUrl(hv)==="#"){showToast("Недопустимый адрес изображения");return;}
-    DB.hero=DB.hero||{};
-    DB.hero.img=hv;
-    admPersist("Hero-изображение сохранено и опубликовано","Hero-изображение сохранено");
+    showToast("Сначала выберите изображение");
   });
 }
 

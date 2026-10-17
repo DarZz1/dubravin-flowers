@@ -33,10 +33,11 @@
 
     <!-- Вход по паролю -->
     <form id="loginForm" class="auth-form" autocomplete="on">
-      <!-- Поле логина показывается только когда рядом работает сервер CMS:
-           в этом режиме учётные данные проверяются на бэкенде.
-           На статическом хостинге поле скрыто — вход по-прежнему по паролю. -->
-      <div class="adm-field" id="loginField" hidden>
+      <!-- Поле логина видно сразу: основной режим — серверный (учётные
+           данные проверяются на бэкенде), поэтому форма не «прыгает».
+           Скрывается только если проверка завершилась и сервера CMS нет
+           (статический хостинг — вход по одному паролю). -->
+      <div class="adm-field" id="loginField">
         <label for="loginInput">Логин</label>
         <input class="adm-input auth-input" id="loginInput" name="username" type="text"
                autocomplete="username" maxlength="64" spellcheck="false">

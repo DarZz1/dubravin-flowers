@@ -36,6 +36,7 @@ var SALE_COL_ID="sale";   /* авто-подборка товаров со ск�
    поэтому украсть его через XSS-чтение localStorage нельзя.
    ========================================================= */
 var DF_API=null;                 /* база API, null — пока не проверили */
+var DF_PROBE_DONE=false;         /* проверка сервера завершена (режим известен) */
 var DF_TOKEN=null;               /* Bearer-токен (только в памяти) */
 var DF_SERVER_OK=false;
 var DF_REV=null;                 /* последняя известная ревизия контента */
@@ -53,7 +54,7 @@ function dfApiBase(){
 /* Есть ли рядом сервер CMS? Один HEAD-запрос при старте страницы. */
 function dfProbeServer(cb){
   var done=false;
-  function finish(ok){ if(done)return; done=true; DF_SERVER_OK=!!ok; if(cb)cb(!!ok); }
+  function finish(ok){ if(done)return; done=true; DF_PROBE_DONE=true; DF_SERVER_OK=!!ok; if(cb)cb(!!ok); }
   try{
     fetch(dfApiBase()+"/health",{cache:"no-store",credentials:"same-origin"})
       .then(function(r){
@@ -98,6 +99,9 @@ function dfIsServerMode(){return !!(DF_SERVER_OK&&DF_API&&DF_TOKEN);}
    витрины не должно быть ни аутентификации, ни связанных с ней терминов
    (это проверяет статический аудит безопасности). */
 function dfServerMode(){return !!(DF_SERVER_OK&&DF_API);}
+/* Завершена ли проверка наличия сервера: пока она идёт, режим неизвестен
+   (экран входа не должен «прыгать», пряча/показывая поле логина). */
+function dfProbeDone(){return DF_PROBE_DONE;}
 
 /* Немедленная отправка контента на сервер (без дебаунса).
    Возвращает промис: тело ответа при успехе, null при ошибке.

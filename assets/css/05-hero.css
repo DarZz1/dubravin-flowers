@@ -12,9 +12,13 @@
 .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px}
 .hero-card .btn.ghost{color:var(--panel-fg);border-color:rgba(246,241,232,.35)}
 .hero-card .btn.ghost:hover{background:var(--panel-fg);color:var(--panel)}
-.hero-stats{display:flex;gap:26px;flex-wrap:wrap}
-.hstat b{font-family:'Unbounded';font-size:clamp(19px,2.2vw,30px);font-weight:800;color:#E7A6B4;display:block}
-.hstat span{font-size:12px;color:rgba(246,241,232,.62);font-weight:600;letter-spacing:.04em;max-width:180px}
+.hero-stats{display:flex;gap:20px 30px;flex-wrap:wrap}
+.hstat{min-width:0}
+.hstat b{font-family:'Unbounded';font-size:clamp(22px,2.5vw,34px);font-weight:800;color:#E7A6B4;display:block;line-height:1.15}
+/* число внутри <b> (data-count) наследует его стиль — раньше его перебивал
+   селектор подписи, из-за чего цифры выглядели мелкими и бледными */
+.hstat b span{font:inherit;color:inherit;letter-spacing:inherit;max-width:none}
+.hstat>b+span{display:block;font-size:clamp(11.5px,.95vw,13.5px);color:rgba(246,241,232,.62);font-weight:600;letter-spacing:.04em;max-width:200px;line-height:1.4}
 .hero-media{position:relative}
 .hero-frame{position:relative;border-radius:24px;overflow:hidden;aspect-ratio:4/5;background:#0E1D15;box-shadow:0 30px 60px rgba(0,0,0,.35)}
 .hero-frame img{width:100%;height:100%;object-fit:cover;will-change:transform}

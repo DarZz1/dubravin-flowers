@@ -87,7 +87,7 @@
   .adm-check input[type="checkbox"]{cursor:pointer!important}
 
   .adm-input,.adm-textarea,.auth-input,#pwInput,#secOld,#secNew,
-  #secNew2,#heroPath,#newColName,
+  #secNew2,#newColName,
   input[type="text"],input[type="number"],input[type="password"],
   input[type="search"],textarea{cursor:text!important}
 }

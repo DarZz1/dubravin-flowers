@@ -70,24 +70,32 @@ const MIME = {
   ".webp": "image/webp", ".gif": "image/gif", ".svg": "image/svg+xml",
 };
 
-/* ---------- подготовка рантайма (один раз на инстанс) ---------- */
-let wired = false;
+/* ---------- подготовка рантайма (НА КАЖДЫЙ вызов функции) ----------
+   Привязка хранилища перепроверяется каждый вызов: если Blobs временно
+   ошиблись (например, истёк токен «тёплого» инстанса), следующий вызов
+   снова попробует Blobs, а не останется навсегда в эфемерном /tmp. */
+let lastStorageMode = null;
+function logStorage(mode) {
+  if (mode !== lastStorageMode) {
+    lastStorageMode = mode;
+    (mode === "blobs" ? console.log : console.error)(
+      "[dubravin-flowers] хранилище: " + (mode === "blobs" ? "Netlify Blobs («" + blobs.STORE_NAME + "»)" : "ФАЙЛЫ /tmp — данные эфемерны, правки НЕ сохраняются между вызовами!")
+    );
+  }
+}
 function wireStorage() {
-  if (wired) return;
   ensureSecret();
   try { ensureDirs(); } catch (e) { /* /tmp может быть недоступен — не критично */ }
   if (blobs.isAvailable()) {
     store.setBackend({ readDB: blobs.readDB, writeDB: blobs.writeDB });
     media.setDriver(blobs.blobsDriver);
-    audit.log("runtime.blobs", { store: blobs.STORE_NAME });
-    console.log("[dubravin-flowers] хранилище: Netlify Blobs («" + blobs.STORE_NAME + "»)");
-  } else {
-    /* Blobs недоступны (локальный запуск netlify dev без контекста сайта):
-       остаёмся на файлах в /tmp — работать будет, но данные эфемерны. */
-    audit.log("runtime.ephemeral", { reason: "blobs-unavailable" });
-    console.error("[dubravin-flowers] ВНИМАНИЕ: Netlify Blobs недоступны — данные эфемерны ( /tmp )");
+    logStorage("blobs");
+    return true;
   }
-  wired = true;
+  store.setBackend(null);
+  media.setDriver(media.fsDriver);
+  logStorage("ephemeral");
+  return false;
 }
 
 /* Первый админ из переменных окружения: в них хэш scrypt, а не пароль.
@@ -153,21 +161,23 @@ async function bootstrapAdmin() {
 }
 
 async function ensureReady() {
-  wireStorage();
+  const usingBlobs = wireStorage();
   try {
     await store.hydrate();
     await bootstrapAdmin();
   } catch (e) {
-    /* Хранилище недоступно (нет контекста сайта, сбой Blobs). Сайт должен
-       остаться живым — возвращаемся к файлам в /tmp. Данные при этом
-       эфемерны, поэтому пишем заметное предупреждение в лог функции:
-       его видно в Netlify → Logs → Functions. */
-    const msg = "Хранилище Netlify Blobs недоступно (" + (e && e.message) + ") — работаю в эфемерном режиме /tmp, правки НЕ сохранятся";
-    console.error("[dubravin-flowers] " + msg);
+    /* Сбой Blobs в ЭТОМ вызове (сеть, токен и т.п.). Сайт должен остаться
+       живым — данный вызов дорабатывает на файлах в /tmp, но следующая
+       функция снова попробует Blobs (wireStorage вызывается каждый раз).
+       Подробная причина — в логах Netlify → Logs → Functions. */
+    console.error("[dubravin-flowers] Хранилище Netlify Blobs недоступно в этом вызове (" + (e && e.message) + ") — разовый откат на /tmp, правки этого вызова НЕ сохранятся");
     audit.log("runtime.blobs-failed", { message: String(e && e.message).slice(0, 200) });
-    store.setBackend(null);
-    media.setDriver(media.fsDriver);   // медиа тоже возвращаем на файлы
-    try { await store.hydrate(); } catch (e2) {}
+    if (usingBlobs) {
+      store.setBackend(null);
+      media.setDriver(media.fsDriver);
+      try { await store.hydrate(); } catch (e2) {}
+      try { await bootstrapAdmin(); } catch (e3) {}
+    }
   }
 }
 

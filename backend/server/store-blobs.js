@@ -32,7 +32,6 @@ const STORE_NAME = process.env.DF_BLOBS_STORE || "dubravin";
 const fs = require("node:fs");
 const path = require("node:path");
 
-let blobs = null;         // объект-стор Netlify Blobs
 let blobsAvailable = false;
 let injectedModule = null; // модуль @netlify/blobs, внедрённый адаптером функции
 
@@ -109,18 +108,25 @@ function mockStore(dir) {
   };
 }
 
+/* ВАЖНО: стор НЕ кэшируется между вызовами. @netlify/blobs читает токен
+   из окружения в момент getStore(), а платформа обновляет его для каждого
+   вызова функции; «тёплый» инстанс живёт дольше жизни токена, и
+   закэшированный клиент начинал отвечать «Failed to decode token: Token
+   expired». Создание стора дёшево (без сети), поэтому делаем его на
+   каждую операцию. */
+let mockCache = null;
+let mockCacheDir = null;
 function getStore() {
-  if (blobs) return blobs;
-  if (process.env.DF_BLOBS_MOCK) {
-    blobs = mockStore(process.env.DF_BLOBS_MOCK);
-    return blobs;
+  const mockDir = process.env.DF_BLOBS_MOCK;
+  if (mockDir) {
+    if (!mockCache || mockCacheDir !== mockDir) { mockCacheDir = mockDir; mockCache = mockStore(mockDir); }
+    return mockCache;
   }
   /* Внедрённый адаптером модуль — в приоритете; ленивый require остаётся
      запасным путём (вне Netlify пакета может не быть — тогда isAvailable()
      вернёт false и бэкенд останется на файлах). */
   const mod = injectedModule || require("@netlify/blobs");
-  blobs = mod.getStore(STORE_NAME);
-  return blobs;
+  return mod.getStore(STORE_NAME);
 }
 
 /* Доступно ли хранилище. Достаточно того, что пакет загружается и getStore()
@@ -231,8 +237,8 @@ const blobsDriver = {
   },
 };
 
-/* Сброс (нужен тестам: стор кэшируется в модуле) */
-function reset() { blobs = null; blobsAvailable = false; }
+/* Сброс (нужен тестам) */
+function reset() { mockCache = null; mockCacheDir = null; blobsAvailable = false; }
 
 module.exports = {
   STORE_NAME, DB_KEY, reset, mockStore, setBlobsModule,

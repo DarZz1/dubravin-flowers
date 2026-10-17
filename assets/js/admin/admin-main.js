@@ -65,16 +65,19 @@ var DF_DEFAULT_PASSWORD="dubravin";
   }
 
   /* ---------- экран входа ---------- */
+  function probeDone(){return (typeof dfProbeDone==="function")?dfProbeDone():true;}
   function showLogin(){
     stopIdleWatch();
     show($("appScreen"),false);
     show($("loginScreen"),true);
     /* Серверный режим: учётки создаёт оператор на сервере (CLI), поэтому
-       экран «первого запуска» не показываем и просим логин. */
+       экран «первого запуска» не показываем и просим логин. Пока проверка
+       сервера не завершена, поле логина остаётся видимым — так форма не
+       «прыгает» при загрузке (основной режим всё равно серверный). */
     var serverMode=(typeof dfServerMode==="function")&&dfServerMode();
-    show($("loginField"),serverMode);
+    show($("loginField"),serverMode||!probeDone());
     var li=$("loginInput");
-    if(li&&!serverMode)li.value="";
+    if(li&&!serverMode&&probeDone())li.value="";
     show($("loginForm"),true);
     hideError("loginError");hideError("setupError");
     var btnL=$("loginBtn");
@@ -162,6 +165,12 @@ var DF_DEFAULT_PASSWORD="dubravin";
       if(btn.disabled)return;
       var pw=$("pwInput").value;
       btn.disabled=true;btn.textContent="Проверяем…";
+      if(!probeDone()){
+        /* Режим ещё определяется: не угадываем, просим повторить через секунду */
+        btn.disabled=false;btn.textContent="Войти";
+        showError("loginError","Определяем режим подключения к серверу — нажмите «Войти» ещё раз через пару секунд.");
+        return;
+      }
       /* Если рядом работает сервер CMS — пароль проверяет ОН: сравнение с
          хэшем scrypt происходит на бэкенде, клиент получает только токен
          сессии (в памяти вкладки) и httpOnly-куку. Локальный DFAuth в этом
